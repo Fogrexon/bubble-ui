@@ -1,5 +1,5 @@
 {
-  "name": "vite-library-template",
+  "name": "bubble-ui",
   "version": "0.1.0",
   "description": "A template for building libraries with Vite and TypeScript",
   "main": "build/commonjs/src/index.js",
