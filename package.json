@@ -45,5 +45,8 @@
   },
   "volta": {
     "node": "22.15.0"
+  },
+  "dependencies": {
+    "bubble-ui-style-engine": "file:libs/bubble-ui-style-engine"
   }
 }
