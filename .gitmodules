@@ -1,0 +1,3 @@
+[submodule "libs/bubble-ui-style-engine"]
+	path = libs/bubble-ui-style-engine
+	url = https://github.com/Fogrexon/bubble-ui-style-engine.git
