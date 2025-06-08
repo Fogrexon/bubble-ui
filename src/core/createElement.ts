@@ -1,4 +1,17 @@
-import { VNode, Props } from './types';
+import type { Props, VNode } from './types';
+
+/**
+ * Creates a VNode specifically for representing text content.
+ * @param text The string content.
+ * @returns A VNode of type 'PRIMITIVE'.
+ */
+const createTextVNode = (text: string): VNode => ({
+    type: 'PRIMITIVE',
+    props: {},
+    _text: text,
+    _parent: null,
+    _depth: 0,
+  });
 
 /**
  * Creates a Virtual DOM Node (VNode).
@@ -10,42 +23,26 @@ import { VNode, Props } from './types';
  * @returns A VNode object.
  */
 export const createElement = (
-    type: VNode['type'],
-    props: Props | null,
-    ...children: (VNode | string | number | null)[]
+  type: VNode['type'],
+  props: Props | null,
+  ...children: (VNode | string | number | null)[]
 ): VNode => {
-    const normalizedProps: Props = { ...props || {} };
+  const normalizedProps: Props = { ...(props || {}) };
 
-    const normalizedChildren = children
-        .flat()
-        .filter(child => child !== null)
-        .map(child =>
-            typeof child === 'string' || typeof child === 'number'
-                ? createTextVNode(String(child))
-                : child
-        );
-    normalizedProps.children = normalizedChildren
+  normalizedProps.children = children
+    .flat()
+    .filter((child) => child !== null)
+    .map((child) =>
+      typeof child === 'string' || typeof child === 'number'
+        ? createTextVNode(String(child))
+        : child
+    );
 
-    return {
-        type,
-        props: normalizedProps,
-        _key: normalizedProps.key,
-        _parent: null,
-        _depth: 0,
-    };
-}
-
-/**
- * Creates a VNode specifically for representing text content.
- * @param text The string content.
- * @returns A VNode of type 'PRIMITIVE'.
- */
-const createTextVNode = (text: string): VNode => {
-    return {
-        type: 'PRIMITIVE',
-        props: {},
-        _text: text,
-        _parent: null,
-        _depth: 0,
-    };
-}
+  return {
+    type,
+    props: normalizedProps,
+    _key: normalizedProps.key,
+    _parent: null,
+    _depth: 0,
+  };
+};

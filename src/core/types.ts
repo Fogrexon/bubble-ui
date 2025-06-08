@@ -18,12 +18,12 @@ export interface Props {
 export interface VNode {
   type: ElementType;
   props: Props;
-  
+
   _key?: Props['key'];
-  
+
   // for plaintext content
   _text?: string | number | null;
-  
+
   _children?: VNode[];
   _parent?: VNode | null;
   _depth?: number;

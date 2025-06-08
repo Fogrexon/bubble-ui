@@ -1,6 +1,6 @@
+import { Align, Display, FlexDirection, Justify, PositionType, Wrap } from 'yoga-layout';
 import { IntermediateStyles } from './MiddleStyleTypes';
 import { RequiredStyles } from './StyleTypes';
-import { Align, Display, FlexDirection, Justify, PositionType, Wrap } from 'yoga-layout';
 
 /**
  * Root style applied to the root element of the component tree

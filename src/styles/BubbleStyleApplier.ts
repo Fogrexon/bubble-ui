@@ -1,6 +1,6 @@
 import { Container, Text as PixiText } from 'pixi.js';
-import { IntermediateStyles } from './MiddleStyleTypes';
 import Yoga, { Node as YogaNode } from 'yoga-layout';
+import { IntermediateStyles } from './MiddleStyleTypes';
 import { Styles } from './StyleTypes';
 import { defaultMiddleStyle } from './utils';
 import { IBubbleStyleApplier } from './IBubbleStyleApplier';
@@ -72,8 +72,10 @@ export class BubbleStyleApplier implements IBubbleStyleApplier {
 
   /** @inheritdoc */
   applyStyle(pixiComponentType: 'text', text: PixiText): void;
+
   /** @inheritdoc */
   applyStyle(pixiComponentType: 'container', container: Container): void;
+
   applyStyle(pixiComponentType: unknown, container: unknown): void {
     throw new Error('Method not implemented.');
   }

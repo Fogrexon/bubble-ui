@@ -18,9 +18,9 @@ export const colorDecoder = (
 ): { color: number; alpha: number } => {
   if (typeof color === 'number') {
     return { color, alpha: 1 };
-  } else if (color.startsWith('#')) {
+  } if (color.startsWith('#')) {
     return { color: parseInt(color.slice(1), 16), alpha: 1 };
-  } else if (color.startsWith('rgb')) {
+  } if (color.startsWith('rgb')) {
     const rgb = color.match(/\d+/g);
     if (rgb) {
       return {

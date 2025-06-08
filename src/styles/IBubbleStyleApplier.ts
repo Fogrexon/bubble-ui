@@ -1,6 +1,6 @@
 import { Node as YogaNode } from 'yoga-layout';
-import { IntermediateStyles } from './MiddleStyleTypes';
 import { Container, Text as PixiText } from 'pixi.js';
+import { IntermediateStyles } from './MiddleStyleTypes';
 import { Styles } from './StyleTypes';
 
 /**
