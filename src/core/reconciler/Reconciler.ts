@@ -1,15 +1,13 @@
-import { VNode, WorkUnit } from '../types';
-import { Committer, ICommitter } from './Committer';
-import { IComponentManager } from './ComponentManager';
-import { Differ, IDiffer } from './Differ';
-import { IEventManager } from './EventManager';
-import { IRendererAdaptor } from './IRendererAdaptor';
+import type { VNode } from '../types';
+import { type ICommitter } from './Committer';
+import type { IComponentManager } from './ComponentManager';
+import type { IDiffer } from './Differ';
 
 /**
  * Interface for the Reconciler.
  * Responsible for the reconciliation process of the virtual DOM tree.
  */
-export interface IReconciler<TargetElement> {
+export interface IReconciler<TargetElement = unknown> {
   /**
    * Performs the reconciliation (diffing and committing) of the virtual DOM tree.
    * @param element The new root virtual DOM element.
@@ -31,18 +29,14 @@ export class Reconciler<TargetElement> implements IReconciler<TargetElement> {
 
   private committer: ICommitter<TargetElement>;
 
-  private rendererAdaptor: IRendererAdaptor<TargetElement>;
-
   constructor(
     componentManager: IComponentManager,
     differ: IDiffer,
-    eventManager: IEventManager, // Keep injection for now, might be needed elsewhere
-    rendererAdaptor: IRendererAdaptor<TargetElement>
+    committer: ICommitter<TargetElement>,
   ) {
     this.componentManager = componentManager;
     this.differ = differ;
-    this.rendererAdaptor = rendererAdaptor;
-    this.committer = new Committer<TargetElement>(this.rendererAdaptor);
+    this.committer = committer
   }
 
   /**

@@ -1,5 +1,5 @@
-import { VNode, WorkUnit } from '../types';
-import { IRendererAdaptor } from './IRendererAdaptor';
+import type { VNode, WorkUnit } from '../types';
+import type { IRendererAdaptor } from './IRendererAdaptor';
 
 /**
  * Interface for the committer.

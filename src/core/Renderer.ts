@@ -1,13 +1,12 @@
-import { Application, Container } from 'pixi.js';
-import { VNode, RenderTarget } from './types';
-import { IReconciler } from './reconciler';
+import type { VNode, RenderTarget } from './types';
+import type { IReconciler } from './reconciler';
 
 /**
  * Renderer class for managing the rendering of virtual DOM trees to PixiJS containers.
  * Acts as the main entry point for the rendering system, delegating the actual
  * reconciliation work to the reconciler.
  */
-export class Renderer<TargetElement = Container> {
+export class Renderer<TargetElement> {
   private rootVNode: VNode | null = null;
 
   private rootContainer: TargetElement | null = null;
@@ -30,7 +29,6 @@ export class Renderer<TargetElement = Container> {
    * @param container The target PixiJS container for rendering.
    */
   public render(element: VNode | null, container: RenderTarget): void {
-    const targetContainer = container instanceof Application ? container.stage : container;
 
     this.reconcilerInstance.reconcile(
       element,

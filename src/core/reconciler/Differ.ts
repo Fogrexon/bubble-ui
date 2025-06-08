@@ -1,4 +1,4 @@
-import { VNode, WorkUnit } from '../types';
+import type { VNode, WorkUnit } from '../types';
 
 /**
  * Interface for the differ.
@@ -55,7 +55,7 @@ export class Differ implements IDiffer {
   ): void {
     if (oldVNode === null && newVNode !== null) {
       if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
-      this.createWorkUnit(workUnits, 'PLACEMENT', newVNode);
+      Differ.createWorkUnit(workUnits, 'PLACEMENT', newVNode);
       (newVNode.props.children || []).forEach((child) => {
         this.performDiff(workUnits, parentVNodeMap, child, null, newVNode);
       });
@@ -63,7 +63,7 @@ export class Differ implements IDiffer {
     }
 
     if (newVNode === null && oldVNode !== null) {
-      this.createWorkUnit(workUnits, 'DELETION', oldVNode);
+      Differ.createWorkUnit(workUnits, 'DELETION', oldVNode);
       return;
     }
 
@@ -75,14 +75,14 @@ export class Differ implements IDiffer {
 
     if (!areSameType) {
       if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
-      this.createWorkUnit(workUnits, 'DELETION', oldVNode);
-      this.createWorkUnit(workUnits, 'PLACEMENT', newVNode);
+      Differ.createWorkUnit(workUnits, 'DELETION', oldVNode);
+      Differ.createWorkUnit(workUnits, 'PLACEMENT', newVNode);
       (newVNode.props.children || []).forEach((child) => {
         this.performDiff(workUnits, parentVNodeMap, child, null, newVNode);
       });
     } else {
       if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
-      this.createWorkUnit(workUnits, 'UPDATE', newVNode, oldVNode);
+      Differ.createWorkUnit(workUnits, 'UPDATE', newVNode, oldVNode);
       this.reconcileChildren(workUnits, parentVNodeMap, newVNode, oldVNode);
     }
   }
@@ -105,7 +105,7 @@ export class Differ implements IDiffer {
     const oldChildren = oldParentVNode.props.children || [];
     const newChildren = newParentVNode.props.children || [];
 
-    for (let i = 0; i < newChildren.length; i++) {
+    for (let i = 0; i < newChildren.length; i+=1) {
       const child = newChildren[i];
       if (child) {
         child.sibling = newChildren[i + 1] || null;
@@ -125,48 +125,58 @@ export class Differ implements IDiffer {
 
     while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
       if (oldStartNode === undefined) {
-        oldStartNode = oldChildren[++oldStartIndex];
+        oldStartIndex += 1;
+        oldStartNode = oldChildren[oldStartIndex];
       } else if (oldEndNode === undefined) {
-        oldEndNode = oldChildren[--oldEndIndex];
-      } else if (this.isSameVNode(oldStartNode, newStartNode)) {
+        oldEndIndex -= 1;
+        oldEndNode = oldChildren[oldEndIndex];
+      } else if (Differ.isSameVNode(oldStartNode, newStartNode)) {
         parentVNodeMap.set(newStartNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newStartNode, oldStartNode, newParentVNode);
-        oldStartNode = oldChildren[++oldStartIndex];
-        newStartNode = newChildren[++newStartIndex];
-      } else if (this.isSameVNode(oldEndNode, newEndNode)) {
+        oldStartIndex += 1;
+        oldStartNode = oldChildren[oldStartIndex];
+        newStartIndex += 1;
+        newStartNode = newChildren[newStartIndex];
+      } else if (Differ.isSameVNode(oldEndNode, newEndNode)) {
         parentVNodeMap.set(newEndNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newEndNode, oldEndNode, newParentVNode);
-        oldEndNode = oldChildren[--oldEndIndex];
-        newEndNode = newChildren[--newEndIndex];
-      } else if (this.isSameVNode(oldStartNode, newEndNode)) {
+        oldEndIndex -= 1;
+        oldEndNode = oldChildren[oldEndIndex];
+        newEndIndex -= 1;
+        newEndNode = newChildren[newEndIndex];
+      } else if (Differ.isSameVNode(oldStartNode, newEndNode)) {
         parentVNodeMap.set(newEndNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newEndNode, oldStartNode, newParentVNode);
 
-        this.createWorkUnit(
+        Differ.createWorkUnit(
           workUnits,
           'PLACEMENT',
           newEndNode,
           oldStartNode,
           newChildren[newEndIndex + 1] || null
         );
-        oldStartNode = oldChildren[++oldStartIndex];
-        newEndNode = newChildren[--newEndIndex];
-      } else if (this.isSameVNode(oldEndNode, newStartNode)) {
+        oldStartIndex += 1;
+        oldStartNode = oldChildren[oldStartIndex];
+        newEndIndex -= 1;
+        newEndNode = newChildren[newEndIndex];
+      } else if (Differ.isSameVNode(oldEndNode, newStartNode)) {
         parentVNodeMap.set(newStartNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newStartNode, oldEndNode, newParentVNode);
 
-        this.createWorkUnit(
+        Differ.createWorkUnit(
           workUnits,
           'PLACEMENT',
           newStartNode,
           oldEndNode,
           newChildren[newStartIndex + 1] || null
         );
-        oldEndNode = oldChildren[--oldEndIndex];
-        newStartNode = newChildren[++newStartIndex];
+        oldEndIndex -= 1;
+        oldEndNode = oldChildren[oldEndIndex];
+        newStartIndex += 1;
+        newStartNode = newChildren[newStartIndex];
       } else {
         if (!oldKeyMap) {
-          oldKeyMap = this.createKeyMap(oldChildren, oldStartIndex, oldEndIndex);
+          oldKeyMap = Differ.createKeyMap(oldChildren, oldStartIndex, oldEndIndex);
         }
 
         const key = newStartNode?.props?.key;
@@ -175,7 +185,7 @@ export class Differ implements IDiffer {
         if (indexInOld === undefined || !newStartNode) {
           if (newStartNode) {
             parentVNodeMap.set(newStartNode, newParentVNode);
-            this.createWorkUnit(
+            Differ.createWorkUnit(
               workUnits,
               'PLACEMENT',
               newStartNode,
@@ -183,18 +193,19 @@ export class Differ implements IDiffer {
               newChildren[newStartIndex + 1] || null
             );
 
+            // eslint-disable-next-line no-loop-func
             (newStartNode.props.children || []).forEach((child) => {
               this.performDiff(workUnits, parentVNodeMap, child, null, newStartNode);
             });
           }
         } else {
           const nodeToMove = oldChildren[indexInOld];
-          if (nodeToMove && this.isSameVNode(nodeToMove, newStartNode)) {
+          if (nodeToMove && Differ.isSameVNode(nodeToMove, newStartNode)) {
             parentVNodeMap.set(newStartNode, newParentVNode);
             this.performDiff(workUnits, parentVNodeMap, newStartNode, nodeToMove, newParentVNode);
             oldChildren[indexInOld] = undefined as any;
 
-            this.createWorkUnit(
+            Differ.createWorkUnit(
               workUnits,
               'PLACEMENT',
               newStartNode,
@@ -203,7 +214,7 @@ export class Differ implements IDiffer {
             );
           } else if (newStartNode) {
               parentVNodeMap.set(newStartNode, newParentVNode);
-              this.createWorkUnit(
+              Differ.createWorkUnit(
                 workUnits,
                 'PLACEMENT',
                 newStartNode,
@@ -211,26 +222,28 @@ export class Differ implements IDiffer {
                 newChildren[newStartIndex + 1] || null
               );
 
+            // eslint-disable-next-line no-loop-func
               (newStartNode.props.children || []).forEach((child) => {
                 this.performDiff(workUnits, parentVNodeMap, child, null, newStartNode);
               });
             }
         }
         if (newStartNode) {
-          newStartNode = newChildren[++newStartIndex];
+          newStartIndex += 1;
+          newStartNode = newChildren[newStartIndex];
         } else {
-          newStartIndex++;
+          newStartIndex += 1;
           newStartNode = newChildren[newStartIndex];
         }
       }
     }
 
     if (oldStartIndex > oldEndIndex) {
-      for (let i = newStartIndex; i <= newEndIndex; i++) {
+      for (let i = newStartIndex; i <= newEndIndex; i+=1) {
         const nodeToAdd = newChildren[i];
         if (nodeToAdd) {
           parentVNodeMap.set(nodeToAdd, newParentVNode);
-          this.createWorkUnit(
+          Differ.createWorkUnit(
             workUnits,
             'PLACEMENT',
             nodeToAdd,
@@ -244,10 +257,10 @@ export class Differ implements IDiffer {
         }
       }
     } else if (newStartIndex > newEndIndex) {
-      for (let i = oldStartIndex; i <= oldEndIndex; i++) {
+      for (let i = oldStartIndex; i <= oldEndIndex; i+=1) {
         const nodeToDelete = oldChildren[i];
         if (nodeToDelete) {
-          this.createWorkUnit(workUnits, 'DELETION', nodeToDelete);
+          Differ.createWorkUnit(workUnits, 'DELETION', nodeToDelete);
         }
       }
     }
@@ -260,7 +273,7 @@ export class Differ implements IDiffer {
    * @param vnode2 The second VNode.
    * @returns True if they are the same VNode type and key, false otherwise.
    */
-  private isSameVNode(vnode1: VNode | null | undefined, vnode2: VNode | null | undefined): boolean {
+  private static isSameVNode(vnode1: VNode | null | undefined, vnode2: VNode | null | undefined): boolean {
     if (!vnode1 || !vnode2) {
       return false;
     }
@@ -274,13 +287,13 @@ export class Differ implements IDiffer {
    * @param endIndex The ending index of the range.
    * @returns A Map where keys are VNode keys and values are their indices.
    */
-  private createKeyMap(
+  private static createKeyMap(
     children: (VNode | undefined)[],
     startIndex: number,
     endIndex: number
   ): Map<string | number, number> {
     const map = new Map<string | number, number>();
-    for (let i = startIndex; i <= endIndex; i++) {
+    for (let i = startIndex; i <= endIndex; i+=1) {
       const child = children[i];
 
       if (child?.props?.key !== undefined) {
@@ -294,30 +307,26 @@ export class Differ implements IDiffer {
    * Creates a WorkUnit and adds it to the list.
    * @param workUnits The list of work units.
    * @param effectTag The type of operation ('PLACEMENT', 'UPDATE', 'DELETION').
-   * @param vnode The VNode associated with the work unit.
+   * @param vNode The VNode associated with the work unit.
    * @param alternate The corresponding old VNode (for UPDATE and DELETION).
    * @param nextSibling The *intended* next sibling VNode in the new children list (for PLACEMENT).
    */
-  private createWorkUnit(
+  private static createWorkUnit(
     workUnits: WorkUnit[],
     effectTag: 'PLACEMENT' | 'UPDATE' | 'DELETION',
-    vnode: VNode,
+    vNode: VNode,
     alternate?: VNode | null,
     nextSibling?: VNode | null
   ): void {
-    const finalAlternate =
-      effectTag === 'PLACEMENT' && alternate
-        ? alternate
-        : effectTag === 'UPDATE' || effectTag === 'DELETION'
-          ? alternate
-          : undefined;
+    const isPassAlternate = (effectTag === 'UPDATE' || effectTag === 'DELETION') && alternate !== undefined;
+    const finalAlternate = isPassAlternate ? alternate : undefined;
 
     workUnits.push({
-      vnode,
+      vnode: vNode,
       effectTag,
       alternate: finalAlternate || undefined,
 
-      nextSibling: nextSibling !== undefined ? nextSibling : vnode.sibling,
+      nextSibling: nextSibling !== undefined ? nextSibling : vNode.sibling,
     } as WorkUnit);
   }
 }
