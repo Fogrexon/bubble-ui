@@ -12,10 +12,10 @@ import { commitHooks, cleanupHooks } from './hooks'; // commitHooks と cleanupH
  */
 export class Renderer<TargetElement = unknown> {
   private previousVNode: VNode | null = null; // 解決後の previous VNode tree root
-  private hostContainer: TargetElement | null = null; // ホストコンテナを保持
-  private rootElementType: VNode['type'] | null = null; // ルート要素の型
-  private rootElementProps: VNode['props'] | null = null; // ルート要素のprops
-  private lastRootElementInstance: VNode | null = null; // 最後にrenderに渡された解決前のルート要素インスタンス
+  private readonly hostContainer: TargetElement; // 不変のホストコンテナ
+  private rootElementType: VNode['type'] | null = null; // 現在のアプリルートの型
+  private rootElementProps: VNode['props'] | null = null; // 現在のアプリルートのprops
+  private lastAppRootElement: VNode | null = null; // 最後にrenderに渡された解決前のアプリルートVNode
 
   private reconcilerInstance: IReconciler;
 
@@ -32,44 +32,47 @@ export class Renderer<TargetElement = unknown> {
   constructor(
     componentResolver: IComponentResolver,
     rendererAdaptor: IRendererAdaptor<TargetElement>,
-    reconciler: IReconciler
+    reconciler: IReconciler,
+    explicitHostContainer?: TargetElement // オプションで外部からコンテナを指定可能
   ) {
     this.componentResolver = componentResolver;
     this.reconcilerInstance = reconciler;
     this.rendererAdaptor = rendererAdaptor;
+
+    if (explicitHostContainer) {
+      this.hostContainer = explicitHostContainer;
+      // アダプタにもコンテナを通知 (アダプタが内部でルートコンテナを管理する場合)
+      this.rendererAdaptor.setHostMountPoint(this.hostContainer); // 名前変更
+    } else {
+      this.hostContainer = this.rendererAdaptor.createDefaultHostMountPoint(); // 名前変更
+      // createDefaultHostMountPoint内でsetHostMountPointが呼ばれることを期待 (TextAdaptor, DOMAdaptorで実装済み)
+    }
   }
 
   /**
-   * Renders the specified virtual DOM tree to the given PixiJS container.
+   * Renders the specified VNode tree into the host container.
    * This is the main entry point for the rendering process.
    *
-   * @param newVNode The root newVNode to render.
-   * @param container The host container to render into. If not provided, a default root will be created by the adaptor.
+   * @param element The root VNode to render.
    */
-  public render(element: VNode | null, container?: TargetElement): void {
-    if (container) {
-      this.hostContainer = container;
-    } else if (!this.hostContainer) {
-      // コンテナが提供されず、かつ内部にもまだホストコンテナがない場合、アダプタにデフォルトを作成させる
-      this.hostContainer = this.rendererAdaptor.createDefaultRootElement();
-      // アダプタ側で setRootContainer も呼ばれる想定 (TextAdaptorではcreateDefaultRootElement内で呼んでいる)
-    }
-
+  public render(element: VNode | null): void {
     if (!this.hostContainer) {
-      console.error("Renderer: Host container is not set and could not be created by adaptor.");
+      // これはコンストラクタで設定されるため、通常発生しないはず
+      console.error("Renderer: Host container is not initialized.");
       return;
     }
     
-    // 初回レンダリング時または要素が指定された場合にルート情報を保存
-    if (element) { // element が null (アンマウント) でない場合
-      if (this.rootElementType === null || this.rootElementProps === null || this.lastRootElementInstance === null) {
-        this.rootElementType = element.type;
-        this.rootElementProps = element.props;
-      }
-      this.lastRootElementInstance = element; // 最後にrenderに渡されたelementを保存
+    // アプリケーションのルートVNode情報を保存/更新
+    if (element) {
+      // 初回またはルートコンポーネントの型が変わった場合にのみtype/propsを更新する方が良いかもしれないが、
+      // reRenderRootで使うために常に最新のelementのtype/propsを保存しておく。
+      this.rootElementType = element.type;
+      this.rootElementProps = element.props;
+      this.lastAppRootElement = element; 
     } else {
-      // アンマウント時はルート情報をクリアしてもよいが、reRenderRootのためには保持しておく必要がある場合も。
-      // ここでは lastRootElementInstance はクリアしない。
+      // アンマウントの場合、ルート情報をクリアする（あるいは保持したままにするか設計による）
+      // this.rootElementType = null;
+      // this.rootElementProps = null;
     }
     
     const resolvedVNode =
@@ -77,21 +80,19 @@ export class Renderer<TargetElement = unknown> {
         ? this.componentResolver.resolveComponent(element, this.reconcilerInstance)
         : element;
 
-    // アンマウント時のクリーンアップ (elementがnullで、かつ以前のルートが関数コンポーネントだった場合)
-    // this.previousVNode は解決後のツリーなので、フックを持つ元の関数コンポーネントVNodeは this.lastRootElementInstance
-    if (element === null && this.lastRootElementInstance && typeof this.lastRootElementInstance.type === 'function') {
-      cleanupHooks(this.lastRootElementInstance);
+    // アンマウント時のクリーンアップ
+    if (element === null && this.lastAppRootElement && typeof this.lastAppRootElement.type === 'function') {
+      cleanupHooks(this.lastAppRootElement);
     }
 
     this.reconcilerInstance.reconcile(resolvedVNode, this.previousVNode);
 
     // マウント・更新後の副作用実行
-    // element が元の関数コンポーネントVNode
     if (element && typeof element.type === 'function') {
       commitHooks(element);
     }
 
-    this.previousVNode = resolvedVNode; // previousVNode は解決後のツリーを指す
+    this.previousVNode = resolvedVNode;
 
     // rendererAdaptor.render() は adaptor が状態を持つ場合に呼び出す想定かもしれない。
     // Committer が adaptor を使って個別の操作を行うので、ここでの一括render呼び出しは不要かもしれない。
@@ -129,17 +130,13 @@ export class Renderer<TargetElement = unknown> {
         ...(this.rootElementProps.children || []) // propsからchildrenを渡す
       );
 
-      // もし以前のルート関数コンポーネントインスタンスが存在し、型が同じであれば、フックの状態とreconcilerを引き継ぐ
-      if (this.lastRootElementInstance && this.lastRootElementInstance.type === this.rootElementType) {
-        newRootElement._hooks = this.lastRootElementInstance._hooks;
-        // _reconciler は ComponentResolver で設定されるので、ここで明示的に引き継ぐ必要はないかもしれない。
-        // ただし、ComponentResolver を通らないパスがあるなら必要。
-        // ComponentResolver を通るなら、新しいインスタンスにも設定されるはず。
-        // 安全のため、または ComponentResolver を通らないケースを考慮して引き継ぐ。
-        newRootElement._reconciler = this.lastRootElementInstance._reconciler;
+      // もし以前のアプリルートVNodeインスタンスが存在し、型が同じであれば、フックの状態とreconcilerを引き継ぐ
+      if (this.lastAppRootElement && this.lastAppRootElement.type === this.rootElementType) {
+        newRootElement._hooks = this.lastAppRootElement._hooks;
+        newRootElement._reconciler = this.lastAppRootElement._reconciler;
       }
       
-      this.render(newRootElement, this.hostContainer);
+      this.render(newRootElement); // container引数は削除された
     } else {
       console.warn("Cannot re-render root, root element information or container not available.");
     }

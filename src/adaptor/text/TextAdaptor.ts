@@ -65,7 +65,7 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
     // do nothing
   }
 
-  getRootContainer(): TextTargetElement | null {
+  getHostMountPoint(): TextTargetElement | null { // 名前変更
     return this._rootContainer;
   }
 
@@ -110,7 +110,7 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
     }
   }
 
-  setRootContainer(container: TextTargetElement | null): void {
+  setHostMountPoint(container: TextTargetElement | null): void { // 名前変更
     this._rootContainer = container;
   }
 
@@ -126,11 +126,16 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
     }
   }
 
-  createDefaultRootElement(): TextTargetElement {
+  createDefaultHostMountPoint(): TextTargetElement { // 名前変更
     // デフォルトのルート要素として、キーを持つ空の要素を返す
     // この要素が、Rendererによって初期コンテナとして設定される
-    const rootElement = { key: 'DEFAULT_ROOT', children: [] };
-    this.setRootContainer(rootElement); // アダプタ内部でもルートとして認識
+    const rootElement = { key: 'DEFAULT_HOST_MOUNT_POINT', children: [] };
+    this.setHostMountPoint(rootElement); // アダプタ内部でもルートとして認識
     return rootElement;
+  }
+
+  displayAppRootOnHost(appRootElement: TextTargetElement | null): void {
+    // TextAdaptorの場合、表示するルート要素そのものを _rootContainer として持つ
+    this._rootContainer = appRootElement;
   }
 }

@@ -16,7 +16,7 @@ export const createRenderer = <TargetElement>(
   // Reconcilerのインスタンス化 (コンストラクタ引数が変更された)
   const reconciler = new Reconciler(differ, committer);
 
-  // Rendererのインスタンス化
+  // Rendererのインスタンス化 (コンストラクタの第4引数 explicitHostContainer は省略)
   const rendererInstance = new Renderer(componentResolver, rendererAdaptor, reconciler);
 
   // ReconcilerにRendererのコンテキストを設定

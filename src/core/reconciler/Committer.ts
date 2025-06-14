@@ -86,7 +86,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     // New root node won't have a parent in the map
     if (!parentVNode && !this.nativeNodeIdMap.has(vnodeId)) {
       const element = this.createAndMapElement(workUnit.vnode);
-      this.adaptor.setRootContainer(element);
+      this.adaptor.displayAppRootOnHost(element); // displayAppRootOnHost を使用
       // createAndMapElement で nativeNodeIdMap に登録済み
       return;
     }
@@ -137,7 +137,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       }
     } else if (!parentVNode) {
       // This is the root element being placed/updated
-      this.adaptor.setRootContainer(element);
+      this.adaptor.displayAppRootOnHost(element); // displayAppRootOnHost を使用
     }
   }
 
@@ -215,8 +215,9 @@ export class Committer<TargetElement = unknown> implements ICommitter {
           parentVNode._id
         );
       }
-    } else if (this.adaptor.getRootContainer() === element) {
-      this.adaptor.setRootContainer(null);
+    } else if (this.adaptor.getHostMountPoint() === element) { 
+      // ルート要素の削除の場合、displayAppRootOnHost(null) を呼び出す
+      this.adaptor.displayAppRootOnHost(null);
     } else {
       console.warn(
         'Cannot commit deletion: No parent VNode with ID found and not root element. ID:',
