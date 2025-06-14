@@ -1,10 +1,10 @@
 import type { VNode } from '../types';
 
 /**
- * Interface for component management.
+ * Interface for component resolution.
  * Responsible for executing function components and resolving them into VNode trees.
  */
-export interface IComponentManager {
+export interface IComponentResolver {
   /**
    * Executes a function component and returns the resulting VNode.
    * Handles recursive resolution if a component returns another component.
@@ -15,10 +15,10 @@ export interface IComponentManager {
 }
 
 /**
- * Implementation class for ComponentManager.
+ * Implementation class for ComponentResolver.
  * Handles the execution and resolution of function components.
  */
-export class ComponentManager implements IComponentManager {
+export class ComponentResolver implements IComponentResolver {
   /**
    * Executes a function component and returns its resulting VNode.
    * If the component returns another component, it resolves recursively.

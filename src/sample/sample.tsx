@@ -7,14 +7,32 @@ const renderer = createRenderer(textAdaptor)
 
 const SampleComponent = () =>
   // sample component
-   <element>
-    <element>
+   <element key="root">
+    <element key={"text1"}>
       text
     </element>
-    <element>
+     <element key={"text2"}>
+       text2
+     </element>
+     <element key={"text3"}>
+       text3
+     </element>
+  </element>
+
+const LittleDiff = () =>
+  <element key="root">
+    <element key={"text1"}>
+      text-altered
+    </element>
+    <element key={"text3"}>
+      text3
+    </element>
+    <element key={"text2"}>
       text2
     </element>
   </element>
 
 
 renderer.render(<SampleComponent />)
+
+renderer.render(<LittleDiff />)

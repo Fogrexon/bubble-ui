@@ -1,5 +1,5 @@
 import type { VNode } from './types';
-import type { IReconciler } from './reconciler';
+import type { IComponentResolver, IReconciler } from './reconciler';
 import type { IRendererAdaptor } from './IRendererAdaptor.ts';
 
 /**
@@ -8,18 +8,26 @@ import type { IRendererAdaptor } from './IRendererAdaptor.ts';
  * reconciliation work to the reconciler.
  */
 export class Renderer<TargetElement = unknown> {
-  private rootVNode: VNode | null = null;
+  private previousVNode: VNode | null = null;
 
   private reconcilerInstance: IReconciler;
+
+  private componentResolver: IComponentResolver;
 
   private rendererAdaptor: IRendererAdaptor<TargetElement>;
 
   /**
    * Creates a Renderer instance with the specified reconciler.
+   * @param componentResolver The component resolver to use for resolving components.
+   * @param rendererAdaptor The renderer adaptor to use for rendering operations.
    * @param reconciler The reconciler instance to use for diffing and committing changes.
-   * @param rendererAdaptor
    */
-  constructor(reconciler: IReconciler, rendererAdaptor: IRendererAdaptor<TargetElement>) {
+  constructor(
+    componentResolver: IComponentResolver,
+    rendererAdaptor: IRendererAdaptor<TargetElement>,
+    reconciler: IReconciler
+  ) {
+    this.componentResolver = componentResolver;
     this.reconcilerInstance = reconciler;
     this.rendererAdaptor = rendererAdaptor;
   }
@@ -28,18 +36,19 @@ export class Renderer<TargetElement = unknown> {
    * Renders the specified virtual DOM tree to the given PixiJS container.
    * This is the main entry point for the rendering process.
    *
-   * @param element The root virtual DOM element to render.
+   * @param newVNode The root newVNode to render.
    */
-  public render(element: VNode | null): void {
+  public render(newVNode: VNode | null): void {
+    const resolvedVNode =
+      newVNode && typeof newVNode.type === 'function'
+        ? this.componentResolver.resolveComponent(newVNode)
+        : newVNode;
 
-    this.reconcilerInstance.reconcile(
-      element,
-      this.rootVNode,
-    );
+    this.reconcilerInstance.reconcile(resolvedVNode, this.previousVNode);
 
-    this.rootVNode = element;
+    this.previousVNode = resolvedVNode;
 
-    this.rendererAdaptor.render()
+    this.rendererAdaptor.render();
   }
 
   /**
@@ -47,6 +56,6 @@ export class Renderer<TargetElement = unknown> {
    * @returns The current root VNode or null if nothing is rendered.
    */
   public getRootVNode(): VNode | null {
-    return this.rootVNode;
+    return this.previousVNode;
   }
 }

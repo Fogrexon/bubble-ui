@@ -1,4 +1,4 @@
-import { Reconciler, ComponentManager, Differ, Committer } from './reconciler';
+import { Reconciler, ComponentResolver, Differ, Committer } from './reconciler';
 import type { IRendererAdaptor } from './IRendererAdaptor';
 import { Renderer } from './Renderer';
 
@@ -9,15 +9,14 @@ import { Renderer } from './Renderer';
 export const createRenderer = <TargetElement>(
   rendererAdaptor: IRendererAdaptor<TargetElement>
 ): Renderer => {
-  const componentManager = new ComponentManager();
+  const componentResolver = new ComponentResolver();
   const differ = new Differ();
   const committer = new Committer(rendererAdaptor);
 
   const reconciler = new Reconciler(
-    componentManager,
     differ,
     committer
   );
 
-  return new Renderer(reconciler, rendererAdaptor);
+  return new Renderer(componentResolver, rendererAdaptor, reconciler);
 };

@@ -71,9 +71,9 @@ export class Differ implements IDiffer {
       return;
     }
 
-    const areSameType = newVNode.type === oldVNode.type;
+    const isSameVNode = Differ.isSameVNode(newVNode, oldVNode);
 
-    if (!areSameType) {
+    if (!isSameVNode) {
       if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
       Differ.createWorkUnit(workUnits, 'DELETION', oldVNode);
       Differ.createWorkUnit(workUnits, 'PLACEMENT', newVNode);
@@ -81,8 +81,10 @@ export class Differ implements IDiffer {
         this.performDiff(workUnits, parentVNodeMap, child, null, newVNode);
       });
     } else {
-      if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
-      Differ.createWorkUnit(workUnits, 'UPDATE', newVNode, oldVNode);
+      if (!Differ.isSameVNodeProps(newVNode, oldVNode)) {
+        if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
+        Differ.createWorkUnit(workUnits, 'UPDATE', newVNode, oldVNode);
+      }
       this.reconcileChildren(workUnits, parentVNodeMap, newVNode, oldVNode);
     }
   }
@@ -260,6 +262,7 @@ export class Differ implements IDiffer {
       for (let i = oldStartIndex; i <= oldEndIndex; i+=1) {
         const nodeToDelete = oldChildren[i];
         if (nodeToDelete) {
+          parentVNodeMap.set(nodeToDelete, newParentVNode);
           Differ.createWorkUnit(workUnits, 'DELETION', nodeToDelete);
         }
       }
@@ -275,9 +278,64 @@ export class Differ implements IDiffer {
    */
   private static isSameVNode(vnode1: VNode | null | undefined, vnode2: VNode | null | undefined): boolean {
     if (!vnode1 || !vnode2) {
+      console.log('One of the VNodes is null or undefined:', vnode1, vnode2, false);
       return false;
     }
-    return vnode1.type === vnode2.type && vnode1.props.key === vnode2.props.key;
+
+    if (vnode1.type !== vnode2.type) {
+      console.log('VNode types do not match:', vnode1.type, vnode2.type, false);
+      return false;
+    }
+
+    if (vnode1.type === 'PRIMITIVE') {
+      console.log('Comparing primitive VNodes:', vnode1._text, vnode2._text, vnode1._text === vnode2._text);
+      return vnode1._text === vnode2._text;
+    }
+    console.log('Comparing VNode keys:', vnode1._key, vnode2._key, vnode1._key === vnode2._key);
+    return vnode1._key === vnode2._key
+  }
+
+  /**
+   * Checks if two VNodes have the same props.
+   * Handles null/undefined inputs gracefully.
+   * @param vnode1 The first VNode.
+   * @param vnode2 The second VNode.
+   * @returns True if they have the same props, false otherwise.
+   */
+  private static isSameVNodeProps(vnode1: VNode, vnode2: VNode): boolean {
+    if (vnode1.props.key !== vnode2.props.key) {
+      console.log('VNode props keys do not match:', vnode1.props.key, vnode2.props.key, false);
+      return false;
+    }
+
+    // Check if both VNodes have the same keys and values in their props
+    const keys1 = Object.keys(vnode1.props);
+    const keys2 = Object.keys(vnode2.props);
+    const diffKeys = keys1.filter(key => !keys2.includes(key)).concat(keys2.filter(key => !keys1.includes(key)));
+    if (diffKeys.length > 0) {
+      console.log('VNode props keys do not match:', diffKeys, false);
+      return false;
+    }
+
+    // Check if all keys have the same values
+    for (let i = 0; i < keys1.length; i += 1){
+      const key = keys1[i];
+      if (key !== 'children') {
+        if (vnode1.props[key] !== vnode2.props[key]) {
+          console.log(
+            `VNode props values do not match for key ${key}:`,
+            vnode1.props[key],
+            vnode2.props[key],
+            false
+          );
+          return false;
+        }
+      }
+    }
+
+    // Compare other properties if needed
+    // For now, we only compare the key
+    return true;
   }
 
   /**
@@ -318,6 +376,7 @@ export class Differ implements IDiffer {
     alternate?: VNode | null,
     nextSibling?: VNode | null
   ): void {
+    console.trace('Creating work unit:', { effectTag, vNode, alternate, nextSibling });
     const isPassAlternate = (effectTag === 'UPDATE' || effectTag === 'DELETION') && alternate !== undefined;
     const finalAlternate = isPassAlternate ? alternate : undefined;
 

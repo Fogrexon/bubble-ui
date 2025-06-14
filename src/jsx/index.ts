@@ -24,7 +24,14 @@ function jsx(type: VNode["type"] | typeof Fragment, props: VNode["props"], key?:
       props.key = key;
     }
   }
-  return createElement(type, props, ...(props.children || []));
+
+  let arrayedChildren: any[];
+  if (Array.isArray(props.children)) {
+    arrayedChildren = props?.children ? props.children : [];
+  } else {
+    arrayedChildren = props?.children ? [props.children] : [];
+  }
+  return createElement(type, props, ...arrayedChildren);
 }
 
 // For the new JSX transform, we also need to support the `jsxs` function

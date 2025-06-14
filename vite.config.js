@@ -5,6 +5,13 @@ import dtsPlugin from 'vite-plugin-dts';
 const libraryName = 'BubbleUI';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      'bubble-ui/jsx-dev-runtime': path.resolve(__dirname, 'src/jsx/jsx-dev-runtime.ts'),
+      'bubble-ui/jsx-runtime': path.resolve(__dirname, 'src/jsx/jsx-runtime.ts'),
+      'bubble-ui': path.resolve(__dirname, 'src/index.ts'),
+    },
+  },
   plugins: [
     dtsPlugin({
       // insertTypesEntry: true,

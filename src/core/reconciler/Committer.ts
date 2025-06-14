@@ -32,6 +32,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       updates: WorkUnit[];
       placements: WorkUnit[];
     };
+    console.log(workUnits)
     const groupedWorkUnits = workUnits.reduce<GroupedWorkUnits>(
       (acc, unit) => {
         if (unit.effectTag === 'DELETION') {
@@ -58,12 +59,13 @@ export class Committer<TargetElement = unknown> implements ICommitter {
 
   private commitPlacement(workUnit: WorkUnit, parentVNodeMap: WeakMap<VNode, VNode>): void {
     const parentVNode = parentVNodeMap.get(workUnit.vnode);
-    // Root node won't have a parent in the map, but might exist if setRootElement was called
+    // New root node won't have a parent in the map
     if (!parentVNode && !this.nativeNodeMap.has(workUnit.vnode)) {
-      console.error(
-        'Cannot commit placement: Parent VNode not found and node is not root.',
-        workUnit.vnode
-      );
+      // If no parent and not already mapped, this is likely a root element placement
+      const element = this.createAndMapElement(workUnit.vnode);
+      this.adaptor.setRootContainer(element);
+      this.nativeNodeMap.set(workUnit.vnode, element);
+
       return;
     }
 

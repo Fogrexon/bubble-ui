@@ -1,4 +1,4 @@
 export * from './Committer';
-export * from './ComponentManager';
+export * from './ComponentResolver.ts';
 export * from './Differ';
 export * from './Reconciler';
