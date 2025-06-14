@@ -1,4 +1,5 @@
-import { Reconciler, ComponentManager, Differ, Committer, type IRendererAdaptor } from './reconciler';
+import { Reconciler, ComponentManager, Differ, Committer } from './reconciler';
+import type { IRendererAdaptor } from './IRendererAdaptor';
 import { Renderer } from './Renderer';
 
 /**
