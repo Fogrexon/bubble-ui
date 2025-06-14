@@ -417,18 +417,18 @@ export class Differ implements IDiffer {
     workUnits: WorkUnit[],
     effectTag: 'PLACEMENT' | 'UPDATE' | 'DELETION',
     vNode: VNode,
-    alternate?: VNode | null,
+    alternate?: VNode | null, // PLACEMENT(移動)時は移動元、UPDATE/DELETION時は更新前/削除対象のノード
     nextSibling?: VNode | null
   ): void {
     console.trace('Creating work unit:', { effectTag, vNode, alternate, nextSibling });
-    const isPassAlternate = (effectTag === 'UPDATE' || effectTag === 'DELETION') && alternate !== undefined;
-    const finalAlternate = isPassAlternate ? alternate : undefined;
+    // alternate が提供されていれば、それを WorkUnit に含める
+    // (UPDATE/DELETION では必須、PLACEMENT(移動)では移動元を示す)
+    const finalAlternate = alternate || undefined;
 
     workUnits.push({
-      vnode: vNode,
+      vnode: vNode, // PLACEMENT なら新しいノード、UPDATE なら更新後のノード、DELETION なら削除されるノード
       effectTag,
-      alternate: finalAlternate || undefined,
-
+      alternate: finalAlternate,
       nextSibling: nextSibling !== undefined ? nextSibling : vNode.sibling,
     } as WorkUnit);
   }

@@ -17,8 +17,37 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
     // do nothing
   }
 
+  private removeChildFromWhereverItIs(childToFind: TextTargetElement): void {
+    if (!this._rootContainer) return;
+    
+    const findAndRemove = (currentParent: TextTargetElement, target: TextTargetElement): boolean => {
+      if (!currentParent.children) return false;
+      const index = currentParent.children.indexOf(target);
+      if (index !== -1) {
+        currentParent.children.splice(index, 1);
+        return true; // 見つけて削除した
+      }
+      // 子要素を再帰的に探索
+      for (const child of currentParent.children) {
+        if (findAndRemove(child, target)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    
+    // ルートから探索を開始するが、ルート自身が親になることはないので、
+    // ルートの直接の子から探索するか、あるいはルートが子を持つ場合にルートを探索対象の親として渡す。
+    // ここでは、ルートが子を持つ場合に、ルートを最初の探索対象の親として渡す。
+    if (this._rootContainer.children && this._rootContainer !== childToFind) { // childToFind がルート自身であるケースは稀だが念のため
+        findAndRemove(this._rootContainer, childToFind);
+    }
+  }
+
   appendChild(parent: TextTargetElement, child: TextTargetElement): void {
-    parent.children?.push(child);
+    this.removeChildFromWhereverItIs(child); // まず既存の場所から削除
+    parent.children = parent.children || []; // childrenがなければ初期化
+    parent.children.push(child);
   }
 
   createElement(vnode: VNode): TextTargetElement {
@@ -46,11 +75,13 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
     child: TextTargetElement,
     beforeChild: TextTargetElement
   ): void {
-    const index = parent.children?.indexOf(beforeChild) ?? -1;
+    this.removeChildFromWhereverItIs(child); // まず既存の場所から削除
+    parent.children = parent.children || []; // childrenがなければ初期化
+    const index = parent.children.indexOf(beforeChild);
     if (index !== -1) {
-      parent.children?.splice(index, 0, child);
+      parent.children.splice(index, 0, child);
     } else {
-      parent.children?.push(child); // Fallback to append if beforeChild not found
+      parent.children.push(child); // Fallback to append if beforeChild not found
     }
   }
 

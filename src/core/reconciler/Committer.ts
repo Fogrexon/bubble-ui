@@ -84,27 +84,32 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     }
 
     let element: TargetElement;
-    if (workUnit.alternate?._id && this.nativeNodeIdMap.has(workUnit.alternate._id)) {
+    const isMove = workUnit.alternate?._id && this.nativeNodeIdMap.has(workUnit.alternate._id);
+
+    if (isMove) {
       // Move existing element
-      element = this.nativeNodeIdMap.get(workUnit.alternate._id) as TargetElement;
-      // 古いIDのマッピングを削除 (移動なので)
-      this.nativeNodeIdMap.delete(workUnit.alternate._id);
-      // 新しいID (実際には引き継がれた同じIDのはず) で再マッピング
-      this.nativeNodeIdMap.set(vnodeId, element);
-      this.adaptor.updateElement(element, workUnit.alternate, workUnit.vnode); // Apply updates
+      element = this.nativeNodeIdMap.get(workUnit.alternate!._id as string) as TargetElement;
+      // IDが引き継がれているので、古いIDのマッピング削除は不要。新しいIDで最新のvnodeを指すようにする。
+      this.nativeNodeIdMap.set(vnodeId, element); // vnodeId は workUnit.vnode._id!
+      this.adaptor.updateElement(element, workUnit.alternate || null, workUnit.vnode); // Propsの更新
+      // 物理的な移動は後段の Insert into parent で行う
     } else {
       // Create new element
       element = this.createAndMapElement(workUnit.vnode); // この中で vnodeId でマップされる
       this.adaptor.updateElement(element, null, workUnit.vnode); // Apply initial props
     }
 
-    // Insert into parent
+    // Insert into parent / Move within parent
     if (parentElement) {
       let beforeElement: TargetElement | null = null;
-      if (workUnit.nextSibling?._id) { // nextSiblingもIDを持つはず
-        beforeElement = this.findNextNativeSiblingById(workUnit.nextSibling._id);
+      const nextSiblingId = workUnit.nextSibling?._id;
+      if (nextSiblingId !== undefined) {
+        beforeElement = this.findNextNativeSiblingById(nextSiblingId);
       }
 
+      // isMove であってもなくても、アダプタの insertChild/appendChild が移動を処理すると仮定
+      // TextAdaptor側で、要素追加前に既存の場所から削除する処理が入ったため、
+      // Committerは単純に新しい場所に挿入/追加するだけで良い。
       if (beforeElement) {
         this.adaptor.insertChild(parentElement, element, beforeElement);
       } else {
