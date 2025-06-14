@@ -36,15 +36,15 @@ describe('Committer', () => {
     type: string | Function,
     props: Record<string, any> = {},
     children: VNode[] = []
-  ): VNode => {
-    return {
+  ): VNode => 
+     ({
       _id: id,
       type,
       props: { ...props, children },
       key: props.key || id, // Ensure key for testing if needed
       // other properties like _componentInstance, _nativeNode can be omitted for basic tests
-    } as VNode; // Cast to VNode, acknowledging some properties might be missing for simplicity
-  };
+    } as VNode) // Cast to VNode, acknowledging some properties might be missing for simplicity
+  ;
 
   // Helper to create a WorkUnit
   const createWorkUnit = (
@@ -52,14 +52,12 @@ describe('Committer', () => {
     vnode: VNode,
     alternate: VNode | null = null,
     nextSibling: WorkUnit['nextSibling'] = null // Use indexed access type from WorkUnit
-  ): WorkUnit => {
-    return {
+  ): WorkUnit => ({
       vnode,
       alternate,
       effectTag,
       nextSibling,
-    };
-  };
+    });
 
   describe('commitWork', () => {
     it('should process deletions, then updates, then placements', () => {
@@ -77,8 +75,10 @@ describe('Committer', () => {
       // For DELETION (vnode1 - id1)
       (committer as any).nativeNodeIdMap.set(vnode1._id!, 'element_for_div_id1');
       // For UPDATE (vnode2 - id2, alternate id2_alt)
-      (committer as any).nativeNodeIdMap.set(createVNode('id2_alt', 'p')._id!, 'element_for_p_id2_alt');
-
+      (committer as any).nativeNodeIdMap.set(
+        createVNode('id2_alt', 'p')._id!,
+        'element_for_p_id2_alt'
+      );
 
       committer.commitWork(workUnits, parentVNodeMap);
 
@@ -90,7 +90,6 @@ describe('Committer', () => {
       // For PLACEMENT, it could be setRootContainer or appendChild/insertChild.
       // In this specific setup, vnode3 (id3) will be a new root.
       expect(mockAdaptor.setRootContainer).toHaveBeenCalledTimes(1);
-
 
       // --- Second part of the test to verify specific calls with fresh mocks ---
       vi.clearAllMocks();
@@ -115,7 +114,11 @@ describe('Committer', () => {
 
       // Check specific calls for the ordered execution
       expect(mockAdaptor.deleteElement).toHaveBeenCalledWith('element_for_div_del1', vnodeDel);
-      expect(mockAdaptor.updateElement).toHaveBeenCalledWith('element_for_p_upd1_alt', alternateUpd, vnodeUpd);
+      expect(mockAdaptor.updateElement).toHaveBeenCalledWith(
+        'element_for_p_upd1_alt',
+        alternateUpd,
+        vnodeUpd
+      );
       expect(mockAdaptor.setRootContainer).toHaveBeenCalledWith('element_for_span_pla1');
     });
   });
@@ -216,7 +219,9 @@ describe('Committer', () => {
         'element_for_span_nodeToMoveOldId' // The moved element
       );
       // Check that the map was updated to the new ID
-      expect((committer as any).nativeNodeIdMap.get('nodeToMoveNewId')).toBe('element_for_span_nodeToMoveOldId');
+      expect((committer as any).nativeNodeIdMap.get('nodeToMoveNewId')).toBe(
+        'element_for_span_nodeToMoveOldId'
+      );
       // Current Committer implementation does not remove the old ID from the map if the VNode's ID changes during a move.
       // It only adds/updates the mapping for the new ID.
       if (vnodeToMove._id !== oldVNodeToMove._id) {
@@ -246,12 +251,14 @@ describe('Committer', () => {
       );
       // Check if map is updated if ID changed
       if (newVNode._id !== oldVNode._id) {
-        expect((committer as any).nativeNodeIdMap.get(newVNode._id!)).toBe('element_for_div_update1_old');
+        expect((committer as any).nativeNodeIdMap.get(newVNode._id!)).toBe(
+          'element_for_div_update1_old'
+        );
         expect((committer as any).nativeNodeIdMap.has(oldVNode._id!)).toBe(false);
       }
     });
 
-     it('should handle update if element not found for alternate ID but found for new VNode ID (fallback)', () => {
+    it('should handle update if element not found for alternate ID but found for new VNode ID (fallback)', () => {
       const oldVNode = createVNode('updateFallback_old', 'div');
       const newVNode = createVNode('updateFallback_new', 'div');
 
@@ -306,7 +313,10 @@ describe('Committer', () => {
         'element_for_div_parentDel1',
         'element_for_p_delete1'
       );
-      expect(mockAdaptor.deleteElement).toHaveBeenCalledWith('element_for_p_delete1', vnodeToDelete);
+      expect(mockAdaptor.deleteElement).toHaveBeenCalledWith(
+        'element_for_p_delete1',
+        vnodeToDelete
+      );
       expect((committer as any).nativeNodeIdMap.has('delete1')).toBe(false);
     });
 
@@ -320,7 +330,10 @@ describe('Committer', () => {
       committer.commitWork([workUnit], parentVNodeMap);
 
       expect(mockAdaptor.setRootContainer).toHaveBeenCalledWith(null);
-      expect(mockAdaptor.deleteElement).toHaveBeenCalledWith('element_for_div_deleteRoot1', vnodeToDelete);
+      expect(mockAdaptor.deleteElement).toHaveBeenCalledWith(
+        'element_for_div_deleteRoot1',
+        vnodeToDelete
+      );
       expect((committer as any).nativeNodeIdMap.has('deleteRoot1')).toBe(false);
       expect(mockAdaptor.removeChild).not.toHaveBeenCalled();
     });
@@ -333,9 +346,18 @@ describe('Committer', () => {
       parentVNode.props.children = [child1]; // Not strictly used by Committer's deletion parent lookup, but good for VNode structure
       parentVNodeMap.set(child1, parentVNode); // Committer uses parentVNodeMap
 
-      (committer as any).nativeNodeIdMap.set('delParentRecursive', 'element_for_div_delParentRecursive');
-      (committer as any).nativeNodeIdMap.set('delChild1Recursive', 'element_for_p_delChild1Recursive');
-      (committer as any).nativeNodeIdMap.set('delGrandchild1Recursive', 'element_for_span_delGrandchild1Recursive');
+      (committer as any).nativeNodeIdMap.set(
+        'delParentRecursive',
+        'element_for_div_delParentRecursive'
+      );
+      (committer as any).nativeNodeIdMap.set(
+        'delChild1Recursive',
+        'element_for_p_delChild1Recursive'
+      );
+      (committer as any).nativeNodeIdMap.set(
+        'delGrandchild1Recursive',
+        'element_for_span_delGrandchild1Recursive'
+      );
 
       const workUnit = createWorkUnit('DELETION', child1); // Delete child1, should also clear grandchild1 from map
       committer.commitWork([workUnit], parentVNodeMap);
@@ -344,7 +366,10 @@ describe('Committer', () => {
         'element_for_div_delParentRecursive',
         'element_for_p_delChild1Recursive'
       );
-      expect(mockAdaptor.deleteElement).toHaveBeenCalledWith('element_for_p_delChild1Recursive', child1);
+      expect(mockAdaptor.deleteElement).toHaveBeenCalledWith(
+        'element_for_p_delChild1Recursive',
+        child1
+      );
       expect((committer as any).nativeNodeIdMap.has('delChild1Recursive')).toBe(false);
       // Check grandchild was also removed from map by recursiveDelete
       expect((committer as any).nativeNodeIdMap.has('delGrandchild1Recursive')).toBe(false);
@@ -389,16 +414,21 @@ describe('Committer', () => {
     });
 
     it('should warn for unknown effect tag', () => {
-        const vnode = createVNode('idUnknown', 'div');
-        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const workUnit = {
-            vnode,
-            effectTag: 'UNKNOWN_TAG' as any, // Force unknown tag
-        } as WorkUnit;
+      const vnode = createVNode('idUnknown', 'div');
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const workUnit = {
+        vnode,
+        effectTag: 'UNKNOWN_TAG' as any, // Force unknown tag
+      } as WorkUnit;
 
-        committer.commitWork([workUnit], parentVNodeMap);
-        expect(consoleWarnSpy).toHaveBeenCalledWith('Unknown effect tag:', 'UNKNOWN_TAG', 'for VNode:', vnode);
-        consoleWarnSpy.mockRestore();
+      committer.commitWork([workUnit], parentVNodeMap);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Unknown effect tag:',
+        'UNKNOWN_TAG',
+        'for VNode:',
+        vnode
+      );
+      consoleWarnSpy.mockRestore();
     });
   });
 });
