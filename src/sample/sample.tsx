@@ -1,5 +1,5 @@
-import { createRenderer } from 'bubble-ui';
-import { TextAdaptor } from '../adaptor/text/TextAdaptor';
+import { TextAdaptor } from '../adaptor';
+import { createRenderer } from '../core';
 
 const textAdaptor = new TextAdaptor()
 
