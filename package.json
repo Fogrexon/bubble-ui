@@ -51,19 +51,19 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/cjs/index.js"
     },
     "./jsx-runtime": {
+      "types": "./dist/types/jsx/jsx-runtime.d.ts",
       "import": "./dist/esm/jsx/jsx-runtime.js",
-      "require": "./dist/cjs/jsx/jsx-runtime.js",
-      "types": "./dist/types/jsx/jsx-runtime.d.ts"
+      "require": "./dist/cjs/jsx/jsx-runtime.js"
     },
     "./jsx-dev-runtime": {
+      "types": "./dist/types/jsx/jsx-dev-runtime.d.ts",
       "import": "./dist/esm/jsx/jsx-dev-runtime.js",
-      "require": "./dist/cjs/jsx/jsx-dev-runtime.js",
-      "types": "./dist/types/jsx/jsx-dev-runtime.d.ts"
+      "require": "./dist/cjs/jsx/jsx-dev-runtime.js"
     }
   },
   "typesVersions": {
