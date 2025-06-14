@@ -20,7 +20,7 @@ export interface ICommitter {
 export class Committer<TargetElement = unknown> implements ICommitter {
   private adaptor: IRendererAdaptor<TargetElement>;
 
-  private nativeNodeMap = new WeakMap<VNode, TargetElement>();
+  private nativeNodeIdMap = new Map<string, TargetElement>(); // VNode._id をキーとするMap
 
   constructor(adaptor: IRendererAdaptor<TargetElement>) {
     this.adaptor = adaptor;
@@ -32,9 +32,15 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       updates: WorkUnit[];
       placements: WorkUnit[];
     };
-    console.log(workUnits)
+    console.log(workUnits);
     const groupedWorkUnits = workUnits.reduce<GroupedWorkUnits>(
       (acc, unit) => {
+        if (!unit.vnode._id && unit.effectTag !== 'DELETION') {
+          // DELETION 以外の操作で ID がない場合はエラー (DifferがIDを付与する責務を持つため)
+          console.error('Committer: VNode is missing _id for non-deletion operation.', unit.vnode, unit.effectTag);
+          // この WorkUnit はスキップするか、エラー処理を行う
+          return acc;
+        }
         if (unit.effectTag === 'DELETION') {
           acc.deletions.push(unit);
         } else if (unit.effectTag === 'UPDATE') {
@@ -48,7 +54,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       },
       { deletions: [], updates: [], placements: [] }
     );
-    
+
     // Process in order: Deletions -> Updates -> Placements
     groupedWorkUnits.deletions.forEach((unit) => this.commitDeletion(unit, parentVNodeMap));
     groupedWorkUnits.updates.forEach((unit) => this.commitUpdate(unit));
@@ -58,47 +64,45 @@ export class Committer<TargetElement = unknown> implements ICommitter {
   // --- Private Commit Methods ---
 
   private commitPlacement(workUnit: WorkUnit, parentVNodeMap: WeakMap<VNode, VNode>): void {
+    const vnodeId = workUnit.vnode._id!; // DifferがIDを付与済みと仮定
     const parentVNode = parentVNodeMap.get(workUnit.vnode);
+
     // New root node won't have a parent in the map
-    if (!parentVNode && !this.nativeNodeMap.has(workUnit.vnode)) {
-      // If no parent and not already mapped, this is likely a root element placement
+    if (!parentVNode && !this.nativeNodeIdMap.has(vnodeId)) {
       const element = this.createAndMapElement(workUnit.vnode);
       this.adaptor.setRootContainer(element);
-      this.nativeNodeMap.set(workUnit.vnode, element);
-
+      // createAndMapElement で nativeNodeIdMap に登録済み
       return;
     }
+    
+    // 親VNodeから親TargetElementを取得 (親VNodeのIDもDifferが付与済みのはず)
+    const parentElement = parentVNode?._id ? this.nativeNodeIdMap.get(parentVNode._id) : null;
 
-    const parentElement = parentVNode ? this.nativeNodeMap.get(parentVNode) : null;
     if (parentVNode && !parentElement) {
-      console.error('Cannot commit placement: Parent element not found for', parentVNode);
+      console.error('Cannot commit placement: Parent element not found for ID', parentVNode._id, parentVNode);
       return;
     }
 
     let element: TargetElement;
-    if (workUnit.alternate) {
+    if (workUnit.alternate?._id && this.nativeNodeIdMap.has(workUnit.alternate._id)) {
       // Move existing element
-      element = this.nativeNodeMap.get(workUnit.alternate) as TargetElement;
-      if (!element) {
-        console.error('Cannot commit move: Element not found for alternate', workUnit.alternate);
-        // Fallback: create new element
-        element = this.createAndMapElement(workUnit.vnode);
-        this.adaptor.updateElement(element, null, workUnit.vnode);
-      } else {
-        this.nativeNodeMap.set(workUnit.vnode, element); // Update mapping
-        this.adaptor.updateElement(element, workUnit.alternate, workUnit.vnode); // Apply updates
-      }
+      element = this.nativeNodeIdMap.get(workUnit.alternate._id) as TargetElement;
+      // 古いIDのマッピングを削除 (移動なので)
+      this.nativeNodeIdMap.delete(workUnit.alternate._id);
+      // 新しいID (実際には引き継がれた同じIDのはず) で再マッピング
+      this.nativeNodeIdMap.set(vnodeId, element);
+      this.adaptor.updateElement(element, workUnit.alternate, workUnit.vnode); // Apply updates
     } else {
       // Create new element
-      element = this.createAndMapElement(workUnit.vnode);
+      element = this.createAndMapElement(workUnit.vnode); // この中で vnodeId でマップされる
       this.adaptor.updateElement(element, null, workUnit.vnode); // Apply initial props
     }
 
     // Insert into parent
     if (parentElement) {
       let beforeElement: TargetElement | null = null;
-      if (workUnit.nextSibling) {
-        beforeElement = this.findNextNativeSibling(workUnit.nextSibling);
+      if (workUnit.nextSibling?._id) { // nextSiblingもIDを持つはず
+        beforeElement = this.findNextNativeSiblingById(workUnit.nextSibling._id);
       }
 
       if (beforeElement) {
@@ -114,149 +118,145 @@ export class Committer<TargetElement = unknown> implements ICommitter {
   }
 
   private commitUpdate(workUnit: WorkUnit): void {
-    if (!workUnit.alternate) {
-      console.error('Cannot commit update: Missing alternate VNode for', workUnit.vnode);
+    if (!workUnit.alternate?._id) {
+      console.error('Cannot commit update: Missing _id on alternate VNode for', workUnit.vnode);
       return;
     }
-    // Find element, preferring alternate VNode
-    let element = this.nativeNodeMap.get(workUnit.alternate);
+    const vnodeId = workUnit.vnode._id!; // DifferがIDを引き継ぎ済みと仮定
+    const alternateId = workUnit.alternate._id;
+
+    let element = this.nativeNodeIdMap.get(alternateId);
 
     if (!element) {
-      // Fallback to new VNode if not found via alternate (might have been moved)
-      element = this.nativeNodeMap.get(workUnit.vnode);
+      console.error(
+        'Cannot commit update: Element not found for alternate ID',
+        alternateId,
+        workUnit.alternate
+      );
+      // フォールバックとして新しいvnodeのIDで試す (DifferのID引き継ぎが確実なら不要なはず)
+      element = this.nativeNodeIdMap.get(vnodeId);
       if (!element) {
-        console.error(
-          'Cannot commit update: Element not found for alternate or new VNode',
-          workUnit.alternate,
-          workUnit.vnode
-        );
+        console.error('Cannot commit update: Element not found for new VNode ID either', vnodeId, workUnit.vnode);
         return;
       }
-      console.warn(
-        'Commit update found element via new VNode, not alternate. Alternate might be stale.',
-        workUnit
-      );
-    } else {
-      // Update mapping to the new VNode
-      this.nativeNodeMap.set(workUnit.vnode, element);
     }
+    
+    // IDが引き継がれているので、alternateId と vnodeId は同じはず。
+    // もし異なる場合は、古いIDのマッピングを削除し、新しいIDで登録する。
+    if (alternateId !== vnodeId) {
+        this.nativeNodeIdMap.delete(alternateId);
+        this.nativeNodeIdMap.set(vnodeId, element);
+    }
+
 
     // Perform the update
     this.adaptor.updateElement(element, workUnit.alternate, workUnit.vnode);
   }
 
   private commitDeletion(workUnit: WorkUnit, parentVNodeMap: WeakMap<VNode, VNode>): void {
-    const parentVNode = parentVNodeMap.get(workUnit.vnode);
-    const element = this.nativeNodeMap.get(workUnit.vnode);
-
-    if (!element) {
-      console.warn('Cannot commit deletion: Element not found for', workUnit.vnode);
-      // Still try to recursively delete children mappings
+    const vnodeId = workUnit.vnode._id;
+    if (!vnodeId) {
+      console.warn('Cannot commit deletion: VNode is missing _id.', workUnit.vnode);
+      // IDがない場合、マップからの削除はできないが、子の再帰的削除は試みる
       this.recursivelyDelete(workUnit.vnode, true);
       return;
     }
 
-    if (parentVNode) {
-      const parentElement = this.nativeNodeMap.get(parentVNode);
-      if (parentElement) {
-        this.adaptor.removeChild(parentElement, element);
-        this.deleteElement(workUnit.vnode, element);
-      } else {
-        console.warn('Cannot commit deletion: Parent element not found in map for', parentVNode);
-      }
-    } else if (this.adaptor.getRootContainer() === element) {
-      // If the element is the root container, clear it
-      this.adaptor.setRootContainer(null);
-      this.deleteElement(workUnit.vnode, element);
-      console.log('Root element deleted:', workUnit.vnode);
-    } else {
-      // If no parent VNode and not root, log a warning
-      // This might happen if the VNode was orphaned or not properly tracked
-      console.warn(
-        'Cannot commit deletion: No parent VNode found and not root element.',
-        workUnit.vnode
-      );
+    const element = this.nativeNodeIdMap.get(vnodeId);
+
+    if (!element) {
+      console.warn('Cannot commit deletion: Element not found for ID', vnodeId, workUnit.vnode);
+      this.recursivelyDelete(workUnit.vnode, true); // マップになくても子の処理は行う
+      return;
     }
 
-    // Recursively remove mappings and potentially destroy elements
-    this.recursivelyDelete(workUnit.vnode);
+    const parentVNode = parentVNodeMap.get(workUnit.vnode);
+    if (parentVNode && parentVNode._id) {
+      const parentElement = this.nativeNodeIdMap.get(parentVNode._id);
+      if (parentElement) {
+        this.adaptor.removeChild(parentElement, element);
+      } else {
+        console.warn('Cannot commit deletion: Parent element not found in map for ID', parentVNode._id);
+      }
+    } else if (this.adaptor.getRootContainer() === element) {
+      this.adaptor.setRootContainer(null);
+      console.log('Root element deleted (ID):', vnodeId);
+    } else {
+      console.warn(
+        'Cannot commit deletion: No parent VNode with ID found and not root element. ID:',
+        vnodeId, workUnit.vnode
+      );
+    }
+    
+    this.deleteElement(workUnit.vnode, element); // マップからの削除とアダプタのdeleteElement呼び出し
+    this.recursivelyDelete(workUnit.vnode); // 子要素のマッピングも再帰的に削除
   }
 
   // --- Helper Methods ---
 
-  /**
-   * Creates a native element using the adaptor, stores the mapping, and sets initial text content if applicable.
-   * @param vnode The VNode to create an element for.
-   * @returns The created native element.
-   */
   private createAndMapElement(vnode: VNode): TargetElement {
+    // vnode._id は Differ によって設定されているか、この関数の呼び出し元 (commitPlacement) で設定される前提
+    if (!vnode._id) {
+        // このパスは通常通らないはず (DifferがIDを付与するため)
+        console.error("createAndMapElement: VNode is missing _id!", vnode);
+        // フォールバックとしてIDを生成することもできるが、設計違反の可能性
+        // vnode._id = randomUUID(); 
+    }
     const element = this.adaptor.createElement(vnode);
-    this.nativeNodeMap.set(vnode, element);
-
+    this.nativeNodeIdMap.set(vnode._id!, element);
     return element;
   }
 
-  /**
-   * Recursively removes VNode-to-element mappings for a deleted VNode subtree.
-   * Optionally, the adaptor could implement element destruction here.
-   * @param vnode The root of the subtree to delete mappings for.
-   * @param skipCurrentNode If true, skips removing the mapping for the initial vnode.
-   */
   private recursivelyDelete(vnode: VNode, skipCurrentNode = false): void {
-    if (!skipCurrentNode) {
-      const element = this.nativeNodeMap.get(vnode);
+    if (!skipCurrentNode && vnode._id) {
+      const element = this.nativeNodeIdMap.get(vnode._id);
       if (element) {
-        this.deleteElement(vnode, element);
+        // adaptor.deleteElement は deleteElement メソッド内で行うのでここでは不要
+        this.nativeNodeIdMap.delete(vnode._id);
       }
     }
 
-    // Recursively delete children mappings
     if (vnode.props && vnode.props.children) {
       vnode.props.children.forEach((child) => {
         if (child) {
-          this.recursivelyDelete(child);
+          this.recursivelyDelete(child); // 子のIDがあればマップから削除される
         }
       });
     }
-    // TODO: Handle component children if/when components are implemented
-    // if (vnode._component && vnode._component.renderedVNode) {
-    //     this.recursivelyDelete(vnode._component.renderedVNode);
-    // }
+  }
+  
+  private findNextNativeSiblingById(siblingId: string | undefined): TargetElement | null {
+    if (!siblingId) return null;
+    return this.nativeNodeIdMap.get(siblingId) || null;
   }
 
-  /**
-   * Finds the first native element corresponding to a sibling VNode
-   * starting from the given `startSiblingVNode`.
-   * Requires VNodes to have a way to traverse siblings (e.g., a `sibling` property).
-   * @param startSiblingVNode The VNode to start searching from.
-   * @returns The corresponding native element, or null if not found.
-   */
+  // findNextNativeSibling はIDベースに変更したので不要になるか、
+  // VNode.sibling を使った探索が必要な場合は残す。今回はIDベースで統一。
+  /*
   private findNextNativeSibling(startSiblingVNode: VNode | null): TargetElement | null {
     let currentVNode: VNode | null = startSiblingVNode;
     while (currentVNode) {
-      const nativeElement = this.nativeNodeMap.get(currentVNode);
-      if (nativeElement) {
-        return nativeElement; // Found
+      if (currentVNode._id) {
+        const nativeElement = this.nativeNodeIdMap.get(currentVNode._id);
+        if (nativeElement) {
+          return nativeElement; // Found
+        }
       }
-      // Requires VNode.sibling property or alternative strategy
-      currentVNode = (currentVNode as any).sibling || null; // Placeholder
+      currentVNode = (currentVNode as any).sibling || null;
       if (!currentVNode) {
-        console.warn(
-          'findNextNativeSibling requires VNode.sibling property or alternative strategy.'
-        );
+        // console.warn(
+        //   'findNextNativeSibling requires VNode.sibling property or alternative strategy.'
+        // );
       }
     }
     return null; // Not found
   }
+  */
 
-  /**
-   * Deletes a specific element and its mapping from the nativeNodeMap.
-   * This is used for cleanup when a VNode is removed.
-   * @param vnode The VNode corresponding to the element being deleted.
-   * @param element The native element to delete.
-   */
   private deleteElement(vnode: VNode, element: TargetElement): void {
     this.adaptor.deleteElement(element, vnode);
-    this.nativeNodeMap.delete(vnode);
+    if (vnode._id) {
+      this.nativeNodeIdMap.delete(vnode._id);
+    }
   }
 }

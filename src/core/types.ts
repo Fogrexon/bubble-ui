@@ -18,6 +18,7 @@ export interface Props {
 export interface VNode {
   type: ElementType;
   props: Props;
+  _id?: string; // VNodeの一意な識別子 (オプショナル)
 
   _key?: Props['key'];
 

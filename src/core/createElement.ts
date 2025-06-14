@@ -39,6 +39,7 @@ export const createElement = (
   return {
     type,
     props: normalizedProps,
+    // _id は Differ または Committer によって設定される
     _key: normalizedProps.key,
   };
 };

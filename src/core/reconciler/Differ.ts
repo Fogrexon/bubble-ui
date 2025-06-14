@@ -1,4 +1,5 @@
 import type { VNode, WorkUnit } from '../types';
+import { v4 as uuidv4 } from 'uuid'; // uuidライブラリを使用
 
 /**
  * Interface for the differ.
@@ -53,16 +54,20 @@ export class Differ implements IDiffer {
     oldVNode: VNode | null,
     parentVNode: VNode | null
   ): void {
-    if (oldVNode === null && newVNode !== null) {
+    if (oldVNode === null && newVNode !== null) { // PLACEMENT (新しいノード)
+      if (!newVNode._id) { // IDがまだなければ発行
+        newVNode._id = uuidv4();
+      }
       if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
       Differ.createWorkUnit(workUnits, 'PLACEMENT', newVNode);
       (newVNode.props.children || []).forEach((child) => {
+        // 子要素の performDiff 呼び出し時、その子 newVNode にも同様にID発行/引き継ぎが必要
         this.performDiff(workUnits, parentVNodeMap, child, null, newVNode);
       });
       return;
     }
 
-    if (newVNode === null && oldVNode !== null) {
+    if (newVNode === null && oldVNode !== null) { // DELETION
       Differ.createWorkUnit(workUnits, 'DELETION', oldVNode);
       return;
     }
@@ -73,14 +78,33 @@ export class Differ implements IDiffer {
 
     const isSameVNode = Differ.isSameVNode(newVNode, oldVNode);
 
-    if (!isSameVNode) {
+    if (!isSameVNode) { // タイプまたはキーが異なる -> 古いものを削除し、新しいものを配置
       if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
-      Differ.createWorkUnit(workUnits, 'DELETION', oldVNode);
+      // newVNode は全く新しいノードなので、IDがなければ発行
+      if (!newVNode._id) {
+        newVNode._id = uuidv4();
+      }
+      Differ.createWorkUnit(workUnits, 'DELETION', oldVNode); // oldVNode は ID を持っているはず
       Differ.createWorkUnit(workUnits, 'PLACEMENT', newVNode);
       (newVNode.props.children || []).forEach((child) => {
         this.performDiff(workUnits, parentVNodeMap, child, null, newVNode);
       });
-    } else {
+    } else { // isSameVNode が true (タイプとキーが一致)
+      if (oldVNode._id) {
+        newVNode._id = oldVNode._id; // 正常なID引き継ぎ
+      } else {
+        // oldVNode に _id がないのは予期しない状況
+        console.error("Differ: oldVNode is missing _id during an update comparison. This indicates an issue in ID propagation or initial assignment.", oldVNode);
+        // newVNode にも _id がなければ、新しいIDを発行して処理を継続する
+        // これにより、この VNode が後続の処理 (Committerなど) でIDを持つことが保証される
+        if (!newVNode._id) {
+          newVNode._id = uuidv4();
+          console.warn("Differ: Assigned new _id to newVNode as a fallback because oldVNode was missing _id.", newVNode);
+        }
+        // newVNode._id が既に存在する場合 (例: oldVNode._idなし、newVNode._idあり)、newVNode._id を維持
+      }
+      // この時点で newVNode は確実に _id を持つ (上記ロジックにより)
+
       if (!Differ.isSameVNodeProps(newVNode, oldVNode)) {
         if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
         Differ.createWorkUnit(workUnits, 'UPDATE', newVNode, oldVNode);
@@ -133,6 +157,7 @@ export class Differ implements IDiffer {
         oldEndIndex -= 1;
         oldEndNode = oldChildren[oldEndIndex];
       } else if (Differ.isSameVNode(oldStartNode, newStartNode)) {
+        if (oldStartNode._id) newStartNode._id = oldStartNode._id; // ID引き継ぎ
         parentVNodeMap.set(newStartNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newStartNode, oldStartNode, newParentVNode);
         oldStartIndex += 1;
@@ -140,6 +165,7 @@ export class Differ implements IDiffer {
         newStartIndex += 1;
         newStartNode = newChildren[newStartIndex];
       } else if (Differ.isSameVNode(oldEndNode, newEndNode)) {
+        if (oldEndNode._id) newEndNode._id = oldEndNode._id; // ID引き継ぎ
         parentVNodeMap.set(newEndNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newEndNode, oldEndNode, newParentVNode);
         oldEndIndex -= 1;
@@ -147,6 +173,7 @@ export class Differ implements IDiffer {
         newEndIndex -= 1;
         newEndNode = newChildren[newEndIndex];
       } else if (Differ.isSameVNode(oldStartNode, newEndNode)) {
+        if (oldStartNode._id) newEndNode._id = oldStartNode._id; // ID引き継ぎ
         parentVNodeMap.set(newEndNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newEndNode, oldStartNode, newParentVNode);
 
@@ -162,6 +189,7 @@ export class Differ implements IDiffer {
         newEndIndex -= 1;
         newEndNode = newChildren[newEndIndex];
       } else if (Differ.isSameVNode(oldEndNode, newStartNode)) {
+        if (oldEndNode._id) newStartNode._id = oldEndNode._id; // ID引き継ぎ
         parentVNodeMap.set(newStartNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newStartNode, oldEndNode, newParentVNode);
 
@@ -185,7 +213,11 @@ export class Differ implements IDiffer {
         const indexInOld = key !== undefined && newStartNode ? oldKeyMap.get(key) : undefined;
 
         if (indexInOld === undefined || !newStartNode) {
+          // 新しいノードとして配置 (キーで見つからなかったか、キーがない)
           if (newStartNode) {
+            if (!newStartNode._id) { // IDがなければ発行
+              newStartNode._id = uuidv4();
+            }
             parentVNodeMap.set(newStartNode, newParentVNode);
             Differ.createWorkUnit(
               workUnits,
@@ -203,6 +235,7 @@ export class Differ implements IDiffer {
         } else {
           const nodeToMove = oldChildren[indexInOld];
           if (nodeToMove && Differ.isSameVNode(nodeToMove, newStartNode)) {
+            if (nodeToMove._id) newStartNode._id = nodeToMove._id; // ID引き継ぎ
             parentVNodeMap.set(newStartNode, newParentVNode);
             this.performDiff(workUnits, parentVNodeMap, newStartNode, nodeToMove, newParentVNode);
             oldChildren[indexInOld] = undefined as any;
@@ -214,7 +247,14 @@ export class Differ implements IDiffer {
               nodeToMove,
               newChildren[newStartIndex + 1] || null
             );
-          } else if (newStartNode) {
+          } else if (newStartNode) { // キーで見つかったが、isSameVNode で false (タイプが異なるなど) -> 古いものを削除し新しいものを配置
+              if (!newStartNode._id) { // IDがなければ発行
+                newStartNode._id = uuidv4();
+              }
+              // このケースでは、indexInOld の nodeToMove を DELETION し、newStartNode を PLACEMENT するのがより正確だが、
+              // 現在のロジックは newStartNode の PLACEMENT のみ。
+              // oldChildren[indexInOld] = undefined as any; // 古いものはマーク済み
+              // Differ.createWorkUnit(workUnits, 'DELETION', nodeToMove); // 本来はこれも必要
               parentVNodeMap.set(newStartNode, newParentVNode);
               Differ.createWorkUnit(
                 workUnits,
@@ -240,10 +280,13 @@ export class Differ implements IDiffer {
       }
     }
 
-    if (oldStartIndex > oldEndIndex) {
+    if (oldStartIndex > oldEndIndex) { // 古い子リストが先に尽きた -> 残りの新しい子はすべて PLACEMENT
       for (let i = newStartIndex; i <= newEndIndex; i+=1) {
         const nodeToAdd = newChildren[i];
         if (nodeToAdd) {
+          if (!nodeToAdd._id) { // IDがなければ発行
+            nodeToAdd._id = uuidv4();
+          }
           parentVNodeMap.set(nodeToAdd, newParentVNode);
           Differ.createWorkUnit(
             workUnits,
@@ -258,10 +301,11 @@ export class Differ implements IDiffer {
           });
         }
       }
-    } else if (newStartIndex > newEndIndex) {
+    } else if (newStartIndex > newEndIndex) { // 新しい子リストが先に尽きた -> 残りの古い子はすべて DELETION
       for (let i = oldStartIndex; i <= oldEndIndex; i+=1) {
         const nodeToDelete = oldChildren[i];
         if (nodeToDelete) {
+          // nodeToDelete は既に ID を持っているはず
           parentVNodeMap.set(nodeToDelete, newParentVNode);
           Differ.createWorkUnit(workUnits, 'DELETION', nodeToDelete);
         }
