@@ -48,5 +48,30 @@
   },
   "dependencies": {
     "bubble-ui-style-engine": "file:libs/bubble-ui-style-engine"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./jsx-runtime": {
+      "import": "./dist/esm/jsx/jsx-runtime.js",
+      "require": "./dist/cjs/jsx/jsx-runtime.js",
+      "types": "./dist/types/jsx/jsx-runtime.d.ts"
+    },
+    "./jsx-dev-runtime": {
+      "import": "./dist/esm/jsx/jsx-dev-runtime.js",
+      "require": "./dist/cjs/jsx/jsx-dev-runtime.js",
+      "types": "./dist/types/jsx/jsx-dev-runtime.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      ".": ["./dist/types/index.d.ts"],
+      "jsx-runtime": ["./dist/types/jsx/jsx-runtime.d.ts"],
+      "jsx-dev-runtime": ["./dist/types/jsx/jsx-dev-runtime.d.ts"],
+      "jsx/types": ["./dist/types/jsx/types.d.ts"]
+    }
   }
 }

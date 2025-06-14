@@ -9,8 +9,6 @@ const createTextVNode = (text: string): VNode => ({
     type: 'PRIMITIVE',
     props: {},
     _text: text,
-    _parent: null,
-    _depth: 0,
   });
 
 /**
@@ -42,7 +40,5 @@ export const createElement = (
     type,
     props: normalizedProps,
     _key: normalizedProps.key,
-    _parent: null,
-    _depth: 0,
   };
 };

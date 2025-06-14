@@ -25,8 +25,6 @@ export interface VNode {
   _text?: string | number | null;
 
   _children?: VNode[];
-  _parent?: VNode | null;
-  _depth?: number;
   sibling?: VNode | null; // Pointer to the next sibling VNode
 }
 
@@ -44,5 +42,3 @@ export interface WorkUnit {
   alternate?: VNode;
   nextSibling?: VNode | null;
 }
-
-// TODO: Add other type definitions as needed

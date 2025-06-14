@@ -14,6 +14,13 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "bubble-ui",
+    "paths": {
+      "bubble-ui/jsx-runtime": ["./src/jsx/jsx-runtime.ts"],
+      "bubble-ui/jsx-dev-runtime": ["./src/jsx/jsx-dev-runtime.ts"],
+      "bubble-ui": ["./src/index.ts"]
+    },
 
     /* Linting */
     "strict": true,

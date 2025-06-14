@@ -19,5 +19,5 @@ export const createRenderer = <TargetElement>(
     committer
   );
 
-  return new Renderer(reconciler);
+  return new Renderer(reconciler, rendererAdaptor);
 };

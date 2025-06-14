@@ -4,25 +4,13 @@ import type { VNode } from './types.ts';
  * Interface for the rendering adaptor.
  * Acts as a bridge between the core diffing/commit logic and a specific rendering engine.
  */
-export interface IRendererAdaptor<TargetElement = unknown, RenderEngine = unknown> {
-  /**
-   * The rendering engine instance (e.g., Pixi.js Application, Text Output Stream).
-   */
-  engine: RenderEngine;
-
-  /**
-   * Initializes the rendering environment.
-   * For example, creating a Pixi.js application instance or setting up a text output.
-   * @param container Optional container element or configuration for the engine.
-   */
-  init(container?: unknown): void; // container can be of any type depending on the engine
+export interface IRendererAdaptor<TargetElement = unknown> {
 
   /**
    * Renders the current state of the UI.
    * This method will be called by the reconciler after changes have been committed.
-   * @param rootVNode The root VNode of the UI tree to render.
    */
-  render(rootVNode: VNode): void;
+  render(): void;
 
   /**
    * Cleans up resources used by the rendering engine.
@@ -43,13 +31,6 @@ export interface IRendererAdaptor<TargetElement = unknown, RenderEngine = unknow
    * @param newVNode The new VNode.
    */
   updateElement(element: TargetElement, oldVNode: VNode | null, newVNode: VNode): void; // Allow null for oldVNode
-
-  /**
-   * Sets the text content of a native element (primarily for text nodes).
-   * @param element The target native text element.
-   * @param text The new text content.
-   */
-  setTextContent(element: TargetElement, text: string): void;
 
   /**
    * Appends a child element to a parent element.
@@ -93,7 +74,7 @@ export interface IRendererAdaptor<TargetElement = unknown, RenderEngine = unknow
    * Gets the root container element for the rendering target.
    * @returns The native root container element.
    */
-  getRootContainer(): TargetElement;
+  getRootContainer(): TargetElement | null;
 
   /**
    * Sets the root container element for the rendering target.

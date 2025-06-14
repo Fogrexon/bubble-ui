@@ -1,22 +1,27 @@
 import type { VNode } from './types';
 import type { IReconciler } from './reconciler';
+import type { IRendererAdaptor } from './IRendererAdaptor.ts';
 
 /**
  * Renderer class for managing the rendering of virtual DOM trees to PixiJS containers.
  * Acts as the main entry point for the rendering system, delegating the actual
  * reconciliation work to the reconciler.
  */
-export class Renderer {
+export class Renderer<TargetElement = unknown> {
   private rootVNode: VNode | null = null;
 
   private reconcilerInstance: IReconciler;
 
+  private rendererAdaptor: IRendererAdaptor<TargetElement>;
+
   /**
    * Creates a Renderer instance with the specified reconciler.
    * @param reconciler The reconciler instance to use for diffing and committing changes.
+   * @param rendererAdaptor
    */
-  constructor(reconciler: IReconciler) {
+  constructor(reconciler: IReconciler, rendererAdaptor: IRendererAdaptor<TargetElement>) {
     this.reconcilerInstance = reconciler;
+    this.rendererAdaptor = rendererAdaptor;
   }
 
   /**
@@ -33,6 +38,8 @@ export class Renderer {
     );
 
     this.rootVNode = element;
+
+    this.rendererAdaptor.render()
   }
 
   /**

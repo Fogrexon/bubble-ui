@@ -162,7 +162,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       } else {
         console.warn('Cannot commit deletion: Parent element not found in map for', parentVNode);
       }
-    } else if (this.adaptor.getRootContainer() == element) {
+    } else if (this.adaptor.getRootContainer() === element) {
       // If the element is the root container, clear it
       this.adaptor.setRootContainer(null);
       this.deleteElement(workUnit.vnode, element);
