@@ -125,4 +125,12 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
       element.children = [];
     }
   }
+
+  createDefaultRootElement(): TextTargetElement {
+    // デフォルトのルート要素として、キーを持つ空の要素を返す
+    // この要素が、Rendererによって初期コンテナとして設定される
+    const rootElement = { key: 'DEFAULT_ROOT', children: [] };
+    this.setRootContainer(rootElement); // アダプタ内部でもルートとして認識
+    return rootElement;
+  }
 }

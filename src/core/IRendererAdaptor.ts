@@ -89,4 +89,11 @@ export interface IRendererAdaptor<TargetElement = unknown> {
    * @param vnode The VNode corresponding to the element being deleted.
    */
   deleteElement(element: TargetElement, vnode: VNode): void;
+
+  /**
+   * Creates a default root element for the rendering target.
+   * This can be used if no explicit container is provided to the renderer.
+   * @returns The created default root element.
+   */
+  createDefaultRootElement(): TargetElement;
 }

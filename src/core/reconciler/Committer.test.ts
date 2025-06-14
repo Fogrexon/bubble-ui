@@ -17,6 +17,7 @@ const mockAdaptor: Mocked<IRendererAdaptor<string>> = {
   render: vi.fn(),
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
+  createDefaultRootElement: vi.fn(() => 'default_root_element_string'), // 追加
   // dispose is optional
 };
 

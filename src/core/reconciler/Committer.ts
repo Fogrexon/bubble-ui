@@ -1,5 +1,6 @@
 import type { VNode, WorkUnit } from '../types';
 import type { IRendererAdaptor } from '../IRendererAdaptor.ts';
+import { cleanupHooks, commitHooks } from '../hooks'; // cleanupHooks と commitHooks をインポート
 
 /**
  * Interface for the committer.
@@ -62,6 +63,15 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     groupedWorkUnits.deletions.forEach((unit) => this.commitDeletion(unit, parentVNodeMap));
     groupedWorkUnits.updates.forEach((unit) => this.commitUpdate(unit));
     groupedWorkUnits.placements.forEach((unit) => this.commitPlacement(unit, parentVNodeMap));
+
+    // Call commitHooks for all updated and placed functional components
+    // This should happen after all DOM mutations are complete
+    const effectWorkUnits = [...groupedWorkUnits.updates, ...groupedWorkUnits.placements];
+    effectWorkUnits.forEach(unit => {
+      if (typeof unit.vnode.type === 'function') {
+        commitHooks(unit.vnode);
+      }
+    });
   }
 
   // --- Private Commit Methods ---
@@ -168,11 +178,18 @@ export class Committer<TargetElement = unknown> implements ICommitter {
   }
 
   private commitDeletion(workUnit: WorkUnit, parentVNodeMap: WeakMap<VNode, VNode>): void {
-    const vnodeId = workUnit.vnode._id;
+    const vnodeToDelete = workUnit.vnode;
+    const vnodeId = vnodeToDelete._id;
+
+    // クリーンアップフックの実行 (関数コンポーネントの場合)
+    if (typeof vnodeToDelete.type === 'function') {
+      cleanupHooks(vnodeToDelete);
+    }
+
     if (!vnodeId) {
-      console.warn('Cannot commit deletion: VNode is missing _id.', workUnit.vnode);
+      console.warn('Cannot commit deletion: VNode is missing _id.', vnodeToDelete);
       // IDがない場合、マップからの削除はできないが、子の再帰的削除は試みる
-      this.recursivelyDelete(workUnit.vnode, true);
+      this.recursivelyDelete(vnodeToDelete, true);
       return;
     }
 

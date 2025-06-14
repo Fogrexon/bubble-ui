@@ -1,4 +1,5 @@
 import type { VNode } from '../types';
+import { prepareHooks } from '../hooks'; // prepareHooks をインポート
 
 /**
  * Interface for component resolution.
@@ -28,6 +29,8 @@ export class ComponentResolver implements IComponentResolver {
   resolveComponent(vnode: VNode): VNode | null {
     if (typeof vnode.type === 'function') {
       try {
+        // 関数コンポーネントを実行する前に prepareHooks を呼び出す
+        prepareHooks(vnode);
         const result = vnode.type(vnode.props);
 
         if (!result) {

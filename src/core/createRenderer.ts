@@ -13,7 +13,17 @@ export const createRenderer = <TargetElement>(
   const differ = new Differ();
   const committer = new Committer(rendererAdaptor);
 
+  // Reconcilerのインスタンス化 (コンストラクタ引数が変更された)
   const reconciler = new Reconciler(differ, committer);
 
-  return new Renderer(componentResolver, rendererAdaptor, reconciler);
+  // Rendererのインスタンス化
+  const rendererInstance = new Renderer(componentResolver, rendererAdaptor, reconciler);
+
+  // ReconcilerにRendererのコンテキストを設定
+  // RendererクラスがReconcilerの期待するインターフェースを提供する必要がある
+  reconciler.setRendererContext({
+    reRenderRoot: () => rendererInstance.reRenderRoot()
+  });
+
+  return rendererInstance;
 };
