@@ -191,10 +191,6 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     const element = this.adaptor.createElement(vnode);
     this.nativeNodeMap.set(vnode, element);
 
-    // Set initial text content for primitive types
-    if (vnode.type === 'PRIMITIVE' && vnode._text !== undefined && vnode._text !== null) {
-      this.adaptor.setTextContent(element, String(vnode._text));
-    }
     return element;
   }
 
