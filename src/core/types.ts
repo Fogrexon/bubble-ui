@@ -40,6 +40,6 @@ export type FunctionComponent<P = {}> = (props: P & { children?: VNode[] }) => V
 export interface WorkUnit {
   vnode: VNode;
   effectTag: 'PLACEMENT' | 'UPDATE' | 'DELETION';
-  alternate?: VNode;
+  alternate?: VNode | null;
   nextSibling?: VNode | null;
 }

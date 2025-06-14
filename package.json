@@ -28,6 +28,7 @@
     "url": "https://github.com/Fogrexon/bubble-ui/issues"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
     "@typescript-eslint/parser": "^8.32.0",
