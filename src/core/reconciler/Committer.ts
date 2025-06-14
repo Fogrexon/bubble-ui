@@ -32,12 +32,15 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       updates: WorkUnit[];
       placements: WorkUnit[];
     };
-    console.log(workUnits);
     const groupedWorkUnits = workUnits.reduce<GroupedWorkUnits>(
       (acc, unit) => {
         if (!unit.vnode._id && unit.effectTag !== 'DELETION') {
           // DELETION 以外の操作で ID がない場合はエラー (DifferがIDを付与する責務を持つため)
-          console.error('Committer: VNode is missing _id for non-deletion operation.', unit.vnode, unit.effectTag);
+          console.error(
+            'Committer: VNode is missing _id for non-deletion operation.',
+            unit.vnode,
+            unit.effectTag
+          );
           // この WorkUnit はスキップするか、エラー処理を行う
           return acc;
         }
@@ -74,12 +77,16 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       // createAndMapElement で nativeNodeIdMap に登録済み
       return;
     }
-    
+
     // 親VNodeから親TargetElementを取得 (親VNodeのIDもDifferが付与済みのはず)
     const parentElement = parentVNode?._id ? this.nativeNodeIdMap.get(parentVNode._id) : null;
 
     if (parentVNode && !parentElement) {
-      console.error('Cannot commit placement: Parent element not found for ID', parentVNode._id, parentVNode);
+      console.error(
+        'Cannot commit placement: Parent element not found for ID',
+        parentVNode._id,
+        parentVNode
+      );
       return;
     }
 
@@ -118,7 +125,6 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     } else if (!parentVNode) {
       // This is the root element being placed/updated
       this.adaptor.setRootContainer(element);
-      console.log('Root element placed/updated:', element);
     }
   }
 
@@ -141,18 +147,21 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       // フォールバックとして新しいvnodeのIDで試す (DifferのID引き継ぎが確実なら不要なはず)
       element = this.nativeNodeIdMap.get(vnodeId);
       if (!element) {
-        console.error('Cannot commit update: Element not found for new VNode ID either', vnodeId, workUnit.vnode);
+        console.error(
+          'Cannot commit update: Element not found for new VNode ID either',
+          vnodeId,
+          workUnit.vnode
+        );
         return;
       }
     }
-    
+
     // IDが引き継がれているので、alternateId と vnodeId は同じはず。
     // もし異なる場合は、古いIDのマッピングを削除し、新しいIDで登録する。
     if (alternateId !== vnodeId) {
-        this.nativeNodeIdMap.delete(alternateId);
-        this.nativeNodeIdMap.set(vnodeId, element);
+      this.nativeNodeIdMap.delete(alternateId);
+      this.nativeNodeIdMap.set(vnodeId, element);
     }
-
 
     // Perform the update
     this.adaptor.updateElement(element, workUnit.alternate, workUnit.vnode);
@@ -181,18 +190,21 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       if (parentElement) {
         this.adaptor.removeChild(parentElement, element);
       } else {
-        console.warn('Cannot commit deletion: Parent element not found in map for ID', parentVNode._id);
+        console.warn(
+          'Cannot commit deletion: Parent element not found in map for ID',
+          parentVNode._id
+        );
       }
     } else if (this.adaptor.getRootContainer() === element) {
       this.adaptor.setRootContainer(null);
-      console.log('Root element deleted (ID):', vnodeId);
     } else {
       console.warn(
         'Cannot commit deletion: No parent VNode with ID found and not root element. ID:',
-        vnodeId, workUnit.vnode
+        vnodeId,
+        workUnit.vnode
       );
     }
-    
+
     this.deleteElement(workUnit.vnode, element); // マップからの削除とアダプタのdeleteElement呼び出し
     this.recursivelyDelete(workUnit.vnode); // 子要素のマッピングも再帰的に削除
   }
@@ -202,10 +214,10 @@ export class Committer<TargetElement = unknown> implements ICommitter {
   private createAndMapElement(vnode: VNode): TargetElement {
     // vnode._id は Differ によって設定されているか、この関数の呼び出し元 (commitPlacement) で設定される前提
     if (!vnode._id) {
-        // このパスは通常通らないはず (DifferがIDを付与するため)
-        console.error("createAndMapElement: VNode is missing _id!", vnode);
-        // フォールバックとしてIDを生成することもできるが、設計違反の可能性
-        // vnode._id = randomUUID(); 
+      // このパスは通常通らないはず (DifferがIDを付与するため)
+      console.error('createAndMapElement: VNode is missing _id!', vnode);
+      // フォールバックとしてIDを生成することもできるが、設計違反の可能性
+      // vnode._id = randomUUID();
     }
     const element = this.adaptor.createElement(vnode);
     this.nativeNodeIdMap.set(vnode._id!, element);
@@ -229,7 +241,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       });
     }
   }
-  
+
   private findNextNativeSiblingById(siblingId: string | undefined): TargetElement | null {
     if (!siblingId) return null;
     return this.nativeNodeIdMap.get(siblingId) || null;

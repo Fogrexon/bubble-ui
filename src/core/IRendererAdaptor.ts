@@ -5,7 +5,6 @@ import type { VNode } from './types.ts';
  * Acts as a bridge between the core diffing/commit logic and a specific rendering engine.
  */
 export interface IRendererAdaptor<TargetElement = unknown> {
-
   /**
    * Renders the current state of the UI.
    * This method will be called by the reconciler after changes have been committed.

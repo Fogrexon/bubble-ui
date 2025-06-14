@@ -25,12 +25,9 @@ export class Reconciler implements IReconciler {
 
   private committer: ICommitter;
 
-  constructor(
-    differ: IDiffer,
-    committer: ICommitter,
-  ) {
+  constructor(differ: IDiffer, committer: ICommitter) {
     this.differ = differ;
-    this.committer = committer
+    this.committer = committer;
   }
 
   /**
@@ -41,7 +38,6 @@ export class Reconciler implements IReconciler {
    * @param oldVNode The previous root virtual DOM newVNode (null on initial render).
    */
   reconcile(newVNode: VNode | null, oldVNode: VNode | null): void {
-    console.log(newVNode, oldVNode)
     const { workUnits, parentVNodeMap } = this.differ.diff(newVNode, oldVNode);
 
     this.committer.commitWork(workUnits, parentVNodeMap);

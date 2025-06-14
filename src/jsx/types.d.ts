@@ -1,4 +1,4 @@
-import { VNode } from '../core'
+import { VNode } from '../core';
 
 declare global {
   namespace JSX {

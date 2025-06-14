@@ -26,6 +26,10 @@ const LittleDiff = () =>
     </element>
     <element key={"text3"}>
       text3
+      <element key={"text4"}>
+        text4
+        text4-2
+      </element>
     </element>
     <element key={"text2"}>
       text2

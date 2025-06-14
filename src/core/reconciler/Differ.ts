@@ -1,5 +1,5 @@
-import type { VNode, WorkUnit } from '../types';
 import { v4 as uuidv4 } from 'uuid'; // uuidライブラリを使用
+import type { VNode, WorkUnit } from '../types';
 
 /**
  * Interface for the differ.
@@ -54,8 +54,11 @@ export class Differ implements IDiffer {
     oldVNode: VNode | null,
     parentVNode: VNode | null
   ): void {
-    if (oldVNode === null && newVNode !== null) { // PLACEMENT (新しいノード)
-      if (!newVNode._id) { // IDがまだなければ発行
+    if (oldVNode === null && newVNode !== null) {
+      // PLACEMENT (新しいノード)
+      if (!newVNode._id) {
+        // IDがまだなければ発行
+        // eslint-disable-next-line no-param-reassign
         newVNode._id = uuidv4();
       }
       if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
@@ -67,7 +70,8 @@ export class Differ implements IDiffer {
       return;
     }
 
-    if (newVNode === null && oldVNode !== null) { // DELETION
+    if (newVNode === null && oldVNode !== null) {
+      // DELETION
       Differ.createWorkUnit(workUnits, 'DELETION', oldVNode);
       return;
     }
@@ -78,10 +82,12 @@ export class Differ implements IDiffer {
 
     const isSameVNode = Differ.isSameVNode(newVNode, oldVNode);
 
-    if (!isSameVNode) { // タイプまたはキーが異なる -> 古いものを削除し、新しいものを配置
+    if (!isSameVNode) {
+      // タイプまたはキーが異なる -> 古いものを削除し、新しいものを配置
       if (parentVNode) parentVNodeMap.set(newVNode, parentVNode);
       // newVNode は全く新しいノードなので、IDがなければ発行
       if (!newVNode._id) {
+        // eslint-disable-next-line no-param-reassign
         newVNode._id = uuidv4();
       }
       Differ.createWorkUnit(workUnits, 'DELETION', oldVNode); // oldVNode は ID を持っているはず
@@ -89,17 +95,26 @@ export class Differ implements IDiffer {
       (newVNode.props.children || []).forEach((child) => {
         this.performDiff(workUnits, parentVNodeMap, child, null, newVNode);
       });
-    } else { // isSameVNode が true (タイプとキーが一致)
+    } else {
+      // isSameVNode が true (タイプとキーが一致)
       if (oldVNode._id) {
+        // eslint-disable-next-line no-param-reassign
         newVNode._id = oldVNode._id; // 正常なID引き継ぎ
       } else {
         // oldVNode に _id がないのは予期しない状況
-        console.error("Differ: oldVNode is missing _id during an update comparison. This indicates an issue in ID propagation or initial assignment.", oldVNode);
+        console.error(
+          'Differ: oldVNode is missing _id during an update comparison. This indicates an issue in ID propagation or initial assignment.',
+          oldVNode
+        );
         // newVNode にも _id がなければ、新しいIDを発行して処理を継続する
         // これにより、この VNode が後続の処理 (Committerなど) でIDを持つことが保証される
         if (!newVNode._id) {
+          // eslint-disable-next-line no-param-reassign
           newVNode._id = uuidv4();
-          console.warn("Differ: Assigned new _id to newVNode as a fallback because oldVNode was missing _id.", newVNode);
+          console.warn(
+            'Differ: Assigned new _id to newVNode as a fallback because oldVNode was missing _id.',
+            newVNode
+          );
         }
         // newVNode._id が既に存在する場合 (例: oldVNode._idなし、newVNode._idあり)、newVNode._id を維持
       }
@@ -131,9 +146,10 @@ export class Differ implements IDiffer {
     const oldChildren = oldParentVNode.props.children || [];
     const newChildren = newParentVNode.props.children || [];
 
-    for (let i = 0; i < newChildren.length; i+=1) {
+    for (let i = 0; i < newChildren.length; i += 1) {
       const child = newChildren[i];
       if (child) {
+        // eslint-disable-next-line no-param-reassign
         child.sibling = newChildren[i + 1] || null;
       }
     }
@@ -157,6 +173,7 @@ export class Differ implements IDiffer {
         oldEndIndex -= 1;
         oldEndNode = oldChildren[oldEndIndex];
       } else if (Differ.isSameVNode(oldStartNode, newStartNode)) {
+        // eslint-disable-next-line no-param-reassign
         if (oldStartNode._id) newStartNode._id = oldStartNode._id; // ID引き継ぎ
         parentVNodeMap.set(newStartNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newStartNode, oldStartNode, newParentVNode);
@@ -165,6 +182,7 @@ export class Differ implements IDiffer {
         newStartIndex += 1;
         newStartNode = newChildren[newStartIndex];
       } else if (Differ.isSameVNode(oldEndNode, newEndNode)) {
+        // eslint-disable-next-line no-param-reassign
         if (oldEndNode._id) newEndNode._id = oldEndNode._id; // ID引き継ぎ
         parentVNodeMap.set(newEndNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newEndNode, oldEndNode, newParentVNode);
@@ -173,6 +191,7 @@ export class Differ implements IDiffer {
         newEndIndex -= 1;
         newEndNode = newChildren[newEndIndex];
       } else if (Differ.isSameVNode(oldStartNode, newEndNode)) {
+        // eslint-disable-next-line no-param-reassign
         if (oldStartNode._id) newEndNode._id = oldStartNode._id; // ID引き継ぎ
         parentVNodeMap.set(newEndNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newEndNode, oldStartNode, newParentVNode);
@@ -189,6 +208,7 @@ export class Differ implements IDiffer {
         newEndIndex -= 1;
         newEndNode = newChildren[newEndIndex];
       } else if (Differ.isSameVNode(oldEndNode, newStartNode)) {
+        // eslint-disable-next-line no-param-reassign
         if (oldEndNode._id) newStartNode._id = oldEndNode._id; // ID引き継ぎ
         parentVNodeMap.set(newStartNode, newParentVNode);
         this.performDiff(workUnits, parentVNodeMap, newStartNode, oldEndNode, newParentVNode);
@@ -215,7 +235,9 @@ export class Differ implements IDiffer {
         if (indexInOld === undefined || !newStartNode) {
           // 新しいノードとして配置 (キーで見つからなかったか、キーがない)
           if (newStartNode) {
-            if (!newStartNode._id) { // IDがなければ発行
+            if (!newStartNode._id) {
+              // IDがなければ発行
+              // eslint-disable-next-line no-param-reassign
               newStartNode._id = uuidv4();
             }
             parentVNodeMap.set(newStartNode, newParentVNode);
@@ -235,6 +257,7 @@ export class Differ implements IDiffer {
         } else {
           const nodeToMove = oldChildren[indexInOld];
           if (nodeToMove && Differ.isSameVNode(nodeToMove, newStartNode)) {
+            // eslint-disable-next-line no-param-reassign
             if (nodeToMove._id) newStartNode._id = nodeToMove._id; // ID引き継ぎ
             parentVNodeMap.set(newStartNode, newParentVNode);
             this.performDiff(workUnits, parentVNodeMap, newStartNode, nodeToMove, newParentVNode);
@@ -247,28 +270,31 @@ export class Differ implements IDiffer {
               nodeToMove,
               newChildren[newStartIndex + 1] || null
             );
-          } else if (newStartNode) { // キーで見つかったが、isSameVNode で false (タイプが異なるなど) -> 古いものを削除し新しいものを配置
-              if (!newStartNode._id) { // IDがなければ発行
-                newStartNode._id = uuidv4();
-              }
-              // このケースでは、indexInOld の nodeToMove を DELETION し、newStartNode を PLACEMENT するのがより正確だが、
-              // 現在のロジックは newStartNode の PLACEMENT のみ。
-              // oldChildren[indexInOld] = undefined as any; // 古いものはマーク済み
-              // Differ.createWorkUnit(workUnits, 'DELETION', nodeToMove); // 本来はこれも必要
-              parentVNodeMap.set(newStartNode, newParentVNode);
-              Differ.createWorkUnit(
-                workUnits,
-                'PLACEMENT',
-                newStartNode,
-                undefined,
-                newChildren[newStartIndex + 1] || null
-              );
+          } else if (newStartNode) {
+            // キーで見つかったが、isSameVNode で false (タイプが異なるなど) -> 古いものを削除し新しいものを配置
+            if (!newStartNode._id) {
+              // IDがなければ発行
+              // eslint-disable-next-line no-param-reassign
+              newStartNode._id = uuidv4();
+            }
+            // このケースでは、indexInOld の nodeToMove を DELETION し、newStartNode を PLACEMENT するのがより正確だが、
+            // 現在のロジックは newStartNode の PLACEMENT のみ。
+            // oldChildren[indexInOld] = undefined as any; // 古いものはマーク済み
+            // Differ.createWorkUnit(workUnits, 'DELETION', nodeToMove); // 本来はこれも必要
+            parentVNodeMap.set(newStartNode, newParentVNode);
+            Differ.createWorkUnit(
+              workUnits,
+              'PLACEMENT',
+              newStartNode,
+              undefined,
+              newChildren[newStartIndex + 1] || null
+            );
 
             // eslint-disable-next-line no-loop-func
-              (newStartNode.props.children || []).forEach((child) => {
-                this.performDiff(workUnits, parentVNodeMap, child, null, newStartNode);
-              });
-            }
+            (newStartNode.props.children || []).forEach((child) => {
+              this.performDiff(workUnits, parentVNodeMap, child, null, newStartNode);
+            });
+          }
         }
         if (newStartNode) {
           newStartIndex += 1;
@@ -280,11 +306,14 @@ export class Differ implements IDiffer {
       }
     }
 
-    if (oldStartIndex > oldEndIndex) { // 古い子リストが先に尽きた -> 残りの新しい子はすべて PLACEMENT
-      for (let i = newStartIndex; i <= newEndIndex; i+=1) {
+    if (oldStartIndex > oldEndIndex) {
+      // 古い子リストが先に尽きた -> 残りの新しい子はすべて PLACEMENT
+      for (let i = newStartIndex; i <= newEndIndex; i += 1) {
         const nodeToAdd = newChildren[i];
         if (nodeToAdd) {
-          if (!nodeToAdd._id) { // IDがなければ発行
+          if (!nodeToAdd._id) {
+            // IDがなければ発行
+            // eslint-disable-next-line no-param-reassign
             nodeToAdd._id = uuidv4();
           }
           parentVNodeMap.set(nodeToAdd, newParentVNode);
@@ -301,8 +330,9 @@ export class Differ implements IDiffer {
           });
         }
       }
-    } else if (newStartIndex > newEndIndex) { // 新しい子リストが先に尽きた -> 残りの古い子はすべて DELETION
-      for (let i = oldStartIndex; i <= oldEndIndex; i+=1) {
+    } else if (newStartIndex > newEndIndex) {
+      // 新しい子リストが先に尽きた -> 残りの古い子はすべて DELETION
+      for (let i = oldStartIndex; i <= oldEndIndex; i += 1) {
         const nodeToDelete = oldChildren[i];
         if (nodeToDelete) {
           // nodeToDelete は既に ID を持っているはず
@@ -320,23 +350,22 @@ export class Differ implements IDiffer {
    * @param vnode2 The second VNode.
    * @returns True if they are the same VNode type and key, false otherwise.
    */
-  private static isSameVNode(vnode1: VNode | null | undefined, vnode2: VNode | null | undefined): boolean {
+  private static isSameVNode(
+    vnode1: VNode | null | undefined,
+    vnode2: VNode | null | undefined
+  ): boolean {
     if (!vnode1 || !vnode2) {
-      console.log('One of the VNodes is null or undefined:', vnode1, vnode2, false);
       return false;
     }
 
     if (vnode1.type !== vnode2.type) {
-      console.log('VNode types do not match:', vnode1.type, vnode2.type, false);
       return false;
     }
 
     if (vnode1.type === 'PRIMITIVE') {
-      console.log('Comparing primitive VNodes:', vnode1._text, vnode2._text, vnode1._text === vnode2._text);
       return vnode1._text === vnode2._text;
     }
-    console.log('Comparing VNode keys:', vnode1._key, vnode2._key, vnode1._key === vnode2._key);
-    return vnode1._key === vnode2._key
+    return vnode1._key === vnode2._key;
   }
 
   /**
@@ -348,30 +377,24 @@ export class Differ implements IDiffer {
    */
   private static isSameVNodeProps(vnode1: VNode, vnode2: VNode): boolean {
     if (vnode1.props.key !== vnode2.props.key) {
-      console.log('VNode props keys do not match:', vnode1.props.key, vnode2.props.key, false);
       return false;
     }
 
     // Check if both VNodes have the same keys and values in their props
     const keys1 = Object.keys(vnode1.props);
     const keys2 = Object.keys(vnode2.props);
-    const diffKeys = keys1.filter(key => !keys2.includes(key)).concat(keys2.filter(key => !keys1.includes(key)));
+    const diffKeys = keys1
+      .filter((key) => !keys2.includes(key))
+      .concat(keys2.filter((key) => !keys1.includes(key)));
     if (diffKeys.length > 0) {
-      console.log('VNode props keys do not match:', diffKeys, false);
       return false;
     }
 
     // Check if all keys have the same values
-    for (let i = 0; i < keys1.length; i += 1){
+    for (let i = 0; i < keys1.length; i += 1) {
       const key = keys1[i];
       if (key !== 'children') {
         if (vnode1.props[key] !== vnode2.props[key]) {
-          console.log(
-            `VNode props values do not match for key ${key}:`,
-            vnode1.props[key],
-            vnode2.props[key],
-            false
-          );
           return false;
         }
       }
@@ -395,7 +418,7 @@ export class Differ implements IDiffer {
     endIndex: number
   ): Map<string | number, number> {
     const map = new Map<string | number, number>();
-    for (let i = startIndex; i <= endIndex; i+=1) {
+    for (let i = startIndex; i <= endIndex; i += 1) {
       const child = children[i];
 
       if (child?.props?.key !== undefined) {
@@ -420,7 +443,6 @@ export class Differ implements IDiffer {
     alternate?: VNode | null, // PLACEMENT(移動)時は移動元、UPDATE/DELETION時は更新前/削除対象のノード
     nextSibling?: VNode | null
   ): void {
-    console.trace('Creating work unit:', { effectTag, vNode, alternate, nextSibling });
     // alternate が提供されていれば、それを WorkUnit に含める
     // (UPDATE/DELETION では必須、PLACEMENT(移動)では移動元を示す)
     const finalAlternate = alternate || undefined;

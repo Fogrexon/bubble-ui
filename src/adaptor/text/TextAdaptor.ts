@@ -1,11 +1,11 @@
-/* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars,no-param-reassign */
+/* eslint-disable no-console, class-methods-use-this, @typescript-eslint/no-unused-vars, no-param-reassign */
 import type { IRendererAdaptor, VNode } from 'bubble-ui';
 
 type TextTargetElement = {
   textContent?: VNode['_text'];
   children?: TextTargetElement[];
   key?: string | number;
-}
+};
 export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
   private _rootContainer: TextTargetElement | null = null;
 
@@ -19,8 +19,11 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
 
   private removeChildFromWhereverItIs(childToFind: TextTargetElement): void {
     if (!this._rootContainer) return;
-    
-    const findAndRemove = (currentParent: TextTargetElement, target: TextTargetElement): boolean => {
+
+    const findAndRemove = (
+      currentParent: TextTargetElement,
+      target: TextTargetElement
+    ): boolean => {
       if (!currentParent.children) return false;
       const index = currentParent.children.indexOf(target);
       if (index !== -1) {
@@ -28,19 +31,15 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
         return true; // 見つけて削除した
       }
       // 子要素を再帰的に探索
-      for (const child of currentParent.children) {
-        if (findAndRemove(child, target)) {
-          return true;
-        }
-      }
-      return false;
+      return currentParent.children.some((child) => findAndRemove(child, target));
     };
-    
+
     // ルートから探索を開始するが、ルート自身が親になることはないので、
     // ルートの直接の子から探索するか、あるいはルートが子を持つ場合にルートを探索対象の親として渡す。
     // ここでは、ルートが子を持つ場合に、ルートを最初の探索対象の親として渡す。
-    if (this._rootContainer.children && this._rootContainer !== childToFind) { // childToFind がルート自身であるケースは稀だが念のため
-        findAndRemove(this._rootContainer, childToFind);
+    if (this._rootContainer.children && this._rootContainer !== childToFind) {
+      // childToFind がルート自身であるケースは稀だが念のため
+      findAndRemove(this._rootContainer, childToFind);
     }
   }
 
@@ -106,7 +105,9 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
   }
 
   render(): void {
-    this.recursiveRender(this._rootContainer || {}, '');
+    if (this._rootContainer) {
+      this.recursiveRender(this._rootContainer, '');
+    }
   }
 
   setRootContainer(container: TextTargetElement | null): void {

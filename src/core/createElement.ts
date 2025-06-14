@@ -6,10 +6,10 @@ import type { Props, VNode } from './types';
  * @returns A VNode of type 'PRIMITIVE'.
  */
 const createTextVNode = (text: string): VNode => ({
-    type: 'PRIMITIVE',
-    props: {},
-    _text: text,
-  });
+  type: 'PRIMITIVE',
+  props: {},
+  _text: text,
+});
 
 /**
  * Creates a Virtual DOM Node (VNode).

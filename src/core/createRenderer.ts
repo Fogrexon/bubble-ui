@@ -13,10 +13,7 @@ export const createRenderer = <TargetElement>(
   const differ = new Differ();
   const committer = new Committer(rendererAdaptor);
 
-  const reconciler = new Reconciler(
-    differ,
-    committer
-  );
+  const reconciler = new Reconciler(differ, committer);
 
   return new Renderer(componentResolver, rendererAdaptor, reconciler);
 };
