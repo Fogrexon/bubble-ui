@@ -4,34 +4,42 @@ import type { VNode } from '../types';
 
 // useStateの実装
 export function useState<S>(initialState: S | (() => S)): [S, (newState: S | ((prevState: S) => S)) => void] {
-  const { index: currentHookIndex, hooks, vnode } = getCurrentHookState<S>();
+  // useStateが呼び出された時点のvnodeとhookIndexをキャプチャ
+  const { index: hookIndexForThisState, vnode: vnodeForThisState, hooks } = getCurrentHookState<S>();
 
-  if (hooks[currentHookIndex] === undefined) {
+  if (hooks[hookIndexForThisState] === undefined) {
     const resolvedInitialState = typeof initialState === 'function'
       ? (initialState as () => S)()
       : initialState;
-    setHookState(currentHookIndex, resolvedInitialState);
+    // setHookStateは現在のcurrentProcessingVNodeとcurrentHookIndexを使うので、
+    // useState呼び出し時のインデックスを渡す必要がある。
+    // しかし、setHookStateは内部でcurrentProcessingVNode[currentHookIndex]にセットするので、
+    // ここで直接vnodeForThisState._hooksにセットする方が安全かもしれない。
+    // manageHooksのsetHookStateがカレントコンテキストに依存しているため、
+    // useStateが呼ばれた時点のインデックスで正しく設定される。
+    setHookState(hookIndexForThisState, resolvedInitialState);
   }
 
   const setState = (newState: S | ((prevState: S) => S)) => {
-    const { index: capturedHookIndex, vnode: capturedVNode } = getCurrentHookState<S>();
-    
-    // _hooks が存在することを保証 (prepareHooksで初期化されるが念のため)
-    if (!capturedVNode._hooks) {
-        capturedVNode._hooks = [];
+    // setStateが呼び出されたとき、それが定義された時点のvnodeとhookIndexを使用する
+    // getCurrentHookState() をここで呼ぶと、非同期コールバックの場合にコンテキストがずれる
+
+    // vnodeForThisState と hookIndexForThisState をクロージャでキャプチャして使用
+    if (!vnodeForThisState._hooks) { // vnodeForThisStateのフック配列を保証
+        vnodeForThisState._hooks = [];
     }
 
-    const currentState = capturedVNode._hooks[capturedHookIndex];
+    const currentState = vnodeForThisState._hooks[hookIndexForThisState];
     
     const nextState = typeof newState === 'function'
       ? (newState as (prevState: S) => S)(currentState)
       : newState;
 
     if (!Object.is(currentState, nextState)) {
-      capturedVNode._hooks[capturedHookIndex] = nextState;
-      console.log("State updated, component should re-render:", capturedVNode, "New state:", nextState);
-      if (capturedVNode._reconciler) {
-        capturedVNode._reconciler.scheduleUpdate(capturedVNode);
+      vnodeForThisState._hooks[hookIndexForThisState] = nextState;
+      console.log("State updated, component should re-render:", vnodeForThisState, "New state:", nextState);
+      if (vnodeForThisState._reconciler) {
+        vnodeForThisState._reconciler.scheduleUpdate(vnodeForThisState);
       } else {
         console.warn("Reconciler instance not found on VNode, cannot schedule update.");
       }
@@ -39,7 +47,5 @@ export function useState<S>(initialState: S | (() => S)): [S, (newState: S | ((p
   };
 
   incrementHookIndex();
-  // hooks[currentHookIndex] は setState 内で更新された後の値ではなく、
-  // この useState が呼ばれた時点での値なので、これで正しい。
-  return [hooks[currentHookIndex], setState];
+  return [hooks[hookIndexForThisState], setState];
 }

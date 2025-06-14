@@ -1,6 +1,6 @@
 import type { VNode, WorkUnit } from '../types';
 import type { IRendererAdaptor } from '../IRendererAdaptor.ts';
-import { cleanupHooks, commitHooks } from '../hooks'; // cleanupHooks と commitHooks をインポート
+// import { cleanupHooks, commitHooks } from '../hooks'; // 削除
 
 /**
  * Interface for the committer.
@@ -32,6 +32,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       deletions: WorkUnit[];
       updates: WorkUnit[];
       placements: WorkUnit[];
+      // effectWorkUnits: WorkUnit[]; // 削除
     };
     const groupedWorkUnits = workUnits.reduce<GroupedWorkUnits>(
       (acc, unit) => {
@@ -49,13 +50,16 @@ export class Committer<TargetElement = unknown> implements ICommitter {
           acc.deletions.push(unit);
         } else if (unit.effectTag === 'UPDATE') {
           acc.updates.push(unit);
+          // acc.effectWorkUnits.push(unit); // 削除
         } else if (unit.effectTag === 'PLACEMENT') {
           acc.placements.push(unit);
+          // acc.effectWorkUnits.push(unit); // 削除
         } else {
           console.warn('Unknown effect tag:', unit.effectTag, 'for VNode:', unit.vnode);
         }
         return acc;
       },
+      // { deletions: [], updates: [], placements: [], effectWorkUnits: [] } // 変更
       { deletions: [], updates: [], placements: [] }
     );
 
@@ -64,14 +68,13 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     groupedWorkUnits.updates.forEach((unit) => this.commitUpdate(unit));
     groupedWorkUnits.placements.forEach((unit) => this.commitPlacement(unit, parentVNodeMap));
 
-    // Call commitHooks for all updated and placed functional components
-    // This should happen after all DOM mutations are complete
-    const effectWorkUnits = [...groupedWorkUnits.updates, ...groupedWorkUnits.placements];
-    effectWorkUnits.forEach(unit => {
-      if (typeof unit.vnode.type === 'function') {
-        commitHooks(unit.vnode);
-      }
-    });
+    // Call commitHooks for all updated and placed functional components // 削除
+    // This should happen after all DOM mutations are complete // 削除
+    // groupedWorkUnits.effectWorkUnits.forEach(unit => { // 削除
+    //   if (typeof unit.vnode.type === 'function') { // 削除
+    //     commitHooks(unit.vnode); // 削除
+    //   } // 削除
+    // }); // 削除
   }
 
   // --- Private Commit Methods ---
@@ -181,10 +184,10 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     const vnodeToDelete = workUnit.vnode;
     const vnodeId = vnodeToDelete._id;
 
-    // クリーンアップフックの実行 (関数コンポーネントの場合)
-    if (typeof vnodeToDelete.type === 'function') {
-      cleanupHooks(vnodeToDelete);
-    }
+    // クリーンアップフックの実行 (関数コンポーネントの場合) // 削除
+    // if (typeof vnodeToDelete.type === 'function') { // 削除
+    //   cleanupHooks(vnodeToDelete); // 削除
+    // } // 削除
 
     if (!vnodeId) {
       console.warn('Cannot commit deletion: VNode is missing _id.', vnodeToDelete);

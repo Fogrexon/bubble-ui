@@ -3,6 +3,7 @@ import type { IComponentResolver } from './reconciler';
 import type { IReconciler } from './reconciler/IReconciler';
 import type { IRendererAdaptor } from './IRendererAdaptor.ts';
 import { createElement } from './createElement'; // createElement をインポート
+import { commitHooks, cleanupHooks } from './hooks'; // commitHooks と cleanupHooks をインポート
 
 /**
  * Renderer class for managing the rendering of virtual DOM trees to PixiJS containers.
@@ -10,10 +11,11 @@ import { createElement } from './createElement'; // createElement をインポ�
  * reconciliation work to the reconciler.
  */
 export class Renderer<TargetElement = unknown> {
-  private previousVNode: VNode | null = null;
+  private previousVNode: VNode | null = null; // 解決後の previous VNode tree root
   private hostContainer: TargetElement | null = null; // ホストコンテナを保持
   private rootElementType: VNode['type'] | null = null; // ルート要素の型
   private rootElementProps: VNode['props'] | null = null; // ルート要素のprops
+  private lastRootElementInstance: VNode | null = null; // 最後にrenderに渡された解決前のルート要素インスタンス
 
   private reconcilerInstance: IReconciler;
 
@@ -59,24 +61,42 @@ export class Renderer<TargetElement = unknown> {
     }
     
     // 初回レンダリング時または要素が指定された場合にルート情報を保存
-    if (element && (this.rootElementType === null || this.rootElementProps === null)) {
+    if (element) { // element が null (アンマウント) でない場合
+      if (this.rootElementType === null || this.rootElementProps === null || this.lastRootElementInstance === null) {
         this.rootElementType = element.type;
         this.rootElementProps = element.props;
+      }
+      this.lastRootElementInstance = element; // 最後にrenderに渡されたelementを保存
+    } else {
+      // アンマウント時はルート情報をクリアしてもよいが、reRenderRootのためには保持しておく必要がある場合も。
+      // ここでは lastRootElementInstance はクリアしない。
     }
     
     const resolvedVNode =
       element && typeof element.type === 'function'
-        ? this.componentResolver.resolveComponent(element)
+        ? this.componentResolver.resolveComponent(element, this.reconcilerInstance)
         : element;
+
+    // アンマウント時のクリーンアップ (elementがnullで、かつ以前のルートが関数コンポーネントだった場合)
+    // this.previousVNode は解決後のツリーなので、フックを持つ元の関数コンポーネントVNodeは this.lastRootElementInstance
+    if (element === null && this.lastRootElementInstance && typeof this.lastRootElementInstance.type === 'function') {
+      cleanupHooks(this.lastRootElementInstance);
+    }
 
     this.reconcilerInstance.reconcile(resolvedVNode, this.previousVNode);
 
-    this.previousVNode = resolvedVNode;
+    // マウント・更新後の副作用実行
+    // element が元の関数コンポーネントVNode
+    if (element && typeof element.type === 'function') {
+      commitHooks(element);
+    }
+
+    this.previousVNode = resolvedVNode; // previousVNode は解決後のツリーを指す
 
     // rendererAdaptor.render() は adaptor が状態を持つ場合に呼び出す想定かもしれない。
     // Committer が adaptor を使って個別の操作を行うので、ここでの一括render呼び出しは不要かもしれない。
     // もし必要なら、adaptor が commitWork の結果を最終的に画面に反映するために呼び出す。
-    // this.rendererAdaptor.render(); // 一旦コメントアウトして様子を見る
+    this.rendererAdaptor.render(); // 呼び出しを復活
   }
 
   /**
@@ -108,6 +128,17 @@ export class Renderer<TargetElement = unknown> {
         this.rootElementProps,
         ...(this.rootElementProps.children || []) // propsからchildrenを渡す
       );
+
+      // もし以前のルート関数コンポーネントインスタンスが存在し、型が同じであれば、フックの状態とreconcilerを引き継ぐ
+      if (this.lastRootElementInstance && this.lastRootElementInstance.type === this.rootElementType) {
+        newRootElement._hooks = this.lastRootElementInstance._hooks;
+        // _reconciler は ComponentResolver で設定されるので、ここで明示的に引き継ぐ必要はないかもしれない。
+        // ただし、ComponentResolver を通らないパスがあるなら必要。
+        // ComponentResolver を通るなら、新しいインスタンスにも設定されるはず。
+        // 安全のため、または ComponentResolver を通らないケースを考慮して引き継ぐ。
+        newRootElement._reconciler = this.lastRootElementInstance._reconciler;
+      }
+      
       this.render(newRootElement, this.hostContainer);
     } else {
       console.warn("Cannot re-render root, root element information or container not available.");
