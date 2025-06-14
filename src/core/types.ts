@@ -36,11 +36,6 @@ export interface VNode {
 export type FunctionComponent<P = {}> = (props: P & { children?: VNode[] }) => VNode | null;
 
 /**
- * Render target
- */
-export type RenderTarget = Application | Container;
-
-/**
  * Work unit for reconciler
  */
 export interface WorkUnit {

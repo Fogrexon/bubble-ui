@@ -1,10 +1,34 @@
-import type { VNode } from '../types';
+import type { VNode } from './types.ts';
 
 /**
  * Interface for the rendering adaptor.
  * Acts as a bridge between the core diffing/commit logic and a specific rendering engine.
  */
-export interface IRendererAdaptor<TargetElement = unknown> {
+export interface IRendererAdaptor<TargetElement = unknown, RenderEngine = unknown> {
+  /**
+   * The rendering engine instance (e.g., Pixi.js Application, Text Output Stream).
+   */
+  engine: RenderEngine;
+
+  /**
+   * Initializes the rendering environment.
+   * For example, creating a Pixi.js application instance or setting up a text output.
+   * @param container Optional container element or configuration for the engine.
+   */
+  init(container?: unknown): void; // container can be of any type depending on the engine
+
+  /**
+   * Renders the current state of the UI.
+   * This method will be called by the reconciler after changes have been committed.
+   * @param rootVNode The root VNode of the UI tree to render.
+   */
+  render(rootVNode: VNode): void;
+
+  /**
+   * Cleans up resources used by the rendering engine.
+   * Called when the application is unmounted or the renderer is destroyed.
+   */
+  dispose?(): void;
   /**
    * Creates a native element instance corresponding to the specified VNode type.
    * @param vnode VNode containing type and initial properties.
@@ -66,9 +90,23 @@ export interface IRendererAdaptor<TargetElement = unknown> {
   removeEventListener(element: TargetElement, eventType: string, listener: Function): void;
 
   /**
-   * Gets or sets the root container element for the rendering target.
-   * @param container The native root container element (if setting).
+   * Gets the root container element for the rendering target.
    * @returns The native root container element.
    */
-  getRootContainer(container?: TargetElement): TargetElement;
+  getRootContainer(): TargetElement;
+
+  /**
+   * Sets the root container element for the rendering target.
+   * This is typically called when initializing the renderer or changing the root container.
+   * @param container The native root container element to set.
+   */
+  setRootContainer(container: TargetElement | null): void;
+
+  /**
+   * Deletes a native element instance.
+   * This is called when a VNode is removed from the tree.
+   * @param element The native element to delete.
+   * @param vnode The VNode corresponding to the element being deleted.
+   */
+  deleteElement(element: TargetElement, vnode: VNode): void;
 }

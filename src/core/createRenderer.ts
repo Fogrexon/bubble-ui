@@ -7,16 +7,16 @@ import { Renderer } from './Renderer';
  */
 export const createRenderer = <TargetElement>(
   rendererAdaptor: IRendererAdaptor<TargetElement>
-): Renderer<TargetElement> => {
+): Renderer => {
   const componentManager = new ComponentManager();
   const differ = new Differ();
   const committer = new Committer(rendererAdaptor);
 
-  const reconciler = new Reconciler<TargetElement>(
+  const reconciler = new Reconciler(
     componentManager,
     differ,
     committer
   );
 
-  return new Renderer<TargetElement>(reconciler);
+  return new Renderer(reconciler);
 };

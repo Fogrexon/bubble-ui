@@ -1,37 +1,23 @@
 import type { VNode, WorkUnit } from '../types';
-import type { IRendererAdaptor } from './IRendererAdaptor';
+import type { IRendererAdaptor } from '../IRendererAdaptor.ts';
 
 /**
  * Interface for the committer.
  * Applies the changes (WorkUnits) to the actual rendering target.
  */
-export interface ICommitter<TargetElement = unknown> {
+export interface ICommitter {
   /**
    * Applies a list of work units to the rendering target.
    * @param workUnits The list of changes to apply.
    * @param parentVNodeMap A map to find the parent VNode for a given VNode.
    */
   commitWork(workUnits: WorkUnit[], parentVNodeMap: WeakMap<VNode, VNode>): void;
-
-  /**
-   * Sets the mapping for the root VNode and its corresponding native element.
-   * @param rootVNode The root VNode of the application.
-   * @param rootElement The root native element (e.g., the PixiJS stage or root container).
-   */
-  setRootElement(rootVNode: VNode, rootElement: TargetElement): void;
-
-  /**
-   * Retrieves the native element corresponding to the root VNode.
-   * @param rootVNode The root VNode.
-   * @returns The corresponding native element, or undefined if not found.
-   */
-  getRootElement(rootVNode: VNode): TargetElement | undefined;
 }
 
 /**
  * Applies changes identified by the Differ to the rendering target using a RendererAdaptor.
  */
-export class Committer<TargetElement = unknown> implements ICommitter<TargetElement> {
+export class Committer<TargetElement = unknown> implements ICommitter {
   private adaptor: IRendererAdaptor<TargetElement>;
 
   private nativeNodeMap = new WeakMap<VNode, TargetElement>();
@@ -41,25 +27,31 @@ export class Committer<TargetElement = unknown> implements ICommitter<TargetElem
   }
 
   commitWork(workUnits: WorkUnit[], parentVNodeMap: WeakMap<VNode, VNode>): void {
+    type GroupedWorkUnits = {
+      deletions: WorkUnit[];
+      updates: WorkUnit[];
+      placements: WorkUnit[];
+    };
+    const groupedWorkUnits = workUnits.reduce<GroupedWorkUnits>(
+      (acc, unit) => {
+        if (unit.effectTag === 'DELETION') {
+          acc.deletions.push(unit);
+        } else if (unit.effectTag === 'UPDATE') {
+          acc.updates.push(unit);
+        } else if (unit.effectTag === 'PLACEMENT') {
+          acc.placements.push(unit);
+        } else {
+          console.warn('Unknown effect tag:', unit.effectTag, 'for VNode:', unit.vnode);
+        }
+        return acc;
+      },
+      { deletions: [], updates: [], placements: [] }
+    );
+    
     // Process in order: Deletions -> Updates -> Placements
-    workUnits
-      .filter((unit) => unit.effectTag === 'DELETION')
-      .forEach((unit) => this.commitDeletion(unit, parentVNodeMap));
-    workUnits
-      .filter((unit) => unit.effectTag === 'UPDATE')
-      .forEach((unit) => this.commitUpdate(unit));
-    workUnits
-      .filter((unit) => unit.effectTag === 'PLACEMENT')
-      .forEach((unit) => this.commitPlacement(unit, parentVNodeMap));
-  }
-
-  setRootElement(rootVNode: VNode, rootElement: TargetElement): void {
-    this.nativeNodeMap.set(rootVNode, rootElement);
-    this.adaptor.getRootContainer(rootElement);
-  }
-
-  getRootElement(rootVNode: VNode): TargetElement | undefined {
-    return this.nativeNodeMap.get(rootVNode);
+    groupedWorkUnits.deletions.forEach((unit) => this.commitDeletion(unit, parentVNodeMap));
+    groupedWorkUnits.updates.forEach((unit) => this.commitUpdate(unit));
+    groupedWorkUnits.placements.forEach((unit) => this.commitPlacement(unit, parentVNodeMap));
   }
 
   // --- Private Commit Methods ---
@@ -114,7 +106,7 @@ export class Committer<TargetElement = unknown> implements ICommitter<TargetElem
       }
     } else if (!parentVNode) {
       // This is the root element being placed/updated
-      this.adaptor.getRootContainer(element);
+      this.adaptor.setRootContainer(element);
       console.log('Root element placed/updated:', element);
     }
   }
@@ -166,13 +158,22 @@ export class Committer<TargetElement = unknown> implements ICommitter<TargetElem
       const parentElement = this.nativeNodeMap.get(parentVNode);
       if (parentElement) {
         this.adaptor.removeChild(parentElement, element);
+        this.deleteElement(workUnit.vnode, element);
       } else {
         console.warn('Cannot commit deletion: Parent element not found in map for', parentVNode);
       }
+    } else if (this.adaptor.getRootContainer() == element) {
+      // If the element is the root container, clear it
+      this.adaptor.setRootContainer(null);
+      this.deleteElement(workUnit.vnode, element);
+      console.log('Root element deleted:', workUnit.vnode);
     } else {
-      // Deleting a node without a parent in the map (root or detached)
-      console.warn('Attempting to delete node with no parent in map:', workUnit.vnode);
-      // Adaptor might need a way to handle root removal if applicable
+      // If no parent VNode and not root, log a warning
+      // This might happen if the VNode was orphaned or not properly tracked
+      console.warn(
+        'Cannot commit deletion: No parent VNode found and not root element.',
+        workUnit.vnode
+      );
     }
 
     // Recursively remove mappings and potentially destroy elements
@@ -207,8 +208,7 @@ export class Committer<TargetElement = unknown> implements ICommitter<TargetElem
     if (!skipCurrentNode) {
       const element = this.nativeNodeMap.get(vnode);
       if (element) {
-        // TODO: Consider adding adaptor.destroyElement(element) if needed
-        this.nativeNodeMap.delete(vnode);
+        this.deleteElement(vnode, element);
       }
     }
 
@@ -249,5 +249,16 @@ export class Committer<TargetElement = unknown> implements ICommitter<TargetElem
       }
     }
     return null; // Not found
+  }
+
+  /**
+   * Deletes a specific element and its mapping from the nativeNodeMap.
+   * This is used for cleanup when a VNode is removed.
+   * @param vnode The VNode corresponding to the element being deleted.
+   * @param element The native element to delete.
+   */
+  private deleteElement(vnode: VNode, element: TargetElement): void {
+    this.adaptor.deleteElement(element, vnode);
+    this.nativeNodeMap.delete(vnode);
   }
 }

@@ -1,4 +1,4 @@
-import { VNode } from '../types';
+import type { VNode } from '../types';
 
 /**
  * Interface for component management.
