@@ -215,7 +215,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
           parentVNode._id
         );
       }
-    } else if (this.adaptor.getHostMountPoint() === element) { 
+    } else if (this.adaptor.getHostMountPoint() === element) {
       // ルート要素の削除の場合、displayAppRootOnHost(null) を呼び出す
       this.adaptor.displayAppRootOnHost(null);
     } else {

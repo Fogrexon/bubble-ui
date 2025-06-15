@@ -39,13 +39,15 @@ export function cleanupHooks(vnode: VNode) {
 
 // hookIndex をインクリメントするヘルパー (各フックで使用)
 export function incrementHookIndex() {
-  currentHookIndex++;
+  currentHookIndex += 1;
 }
 
 // 現在のフックの状態とコンポーネントインスタンスを取得するヘルパー
-export function getCurrentHookState<T>(): { vnode: VNode, index: number, hooks: T[] } {
+export function getCurrentHookState<T>(): { vnode: VNode; index: number; hooks: T[] } {
   if (!currentProcessingVNode) {
-    throw new Error("Hooks can only be called outside of a component rendering phase or without calling prepareHooks.");
+    throw new Error(
+      'Hooks can only be called outside of a component rendering phase or without calling prepareHooks.'
+    );
   }
   // _hooks が未定義の場合に備えてデフォルトの空配列を使用
   const hooksArray = (currentProcessingVNode._hooks || []) as T[];
@@ -55,7 +57,9 @@ export function getCurrentHookState<T>(): { vnode: VNode, index: number, hooks: 
 // フックの状態を設定するヘルパー
 export function setHookState<T>(index: number, value: T) {
   if (!currentProcessingVNode) {
-    throw new Error("Hooks can only be called outside of a component rendering phase or without calling prepareHooks.");
+    throw new Error(
+      'Hooks can only be called outside of a component rendering phase or without calling prepareHooks.'
+    );
   }
   if (!currentProcessingVNode._hooks) {
     currentProcessingVNode._hooks = [];

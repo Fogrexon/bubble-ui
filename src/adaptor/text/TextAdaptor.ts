@@ -65,7 +65,8 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
     // do nothing
   }
 
-  getHostMountPoint(): TextTargetElement | null { // 名前変更
+  getHostMountPoint(): TextTargetElement | null {
+    // 名前変更
     return this._rootContainer;
   }
 
@@ -110,7 +111,8 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
     }
   }
 
-  setHostMountPoint(container: TextTargetElement | null): void { // 名前変更
+  setHostMountPoint(container: TextTargetElement | null): void {
+    // 名前変更
     this._rootContainer = container;
   }
 
@@ -126,7 +128,8 @@ export class TextAdaptor implements IRendererAdaptor<TextTargetElement> {
     }
   }
 
-  createDefaultHostMountPoint(): TextTargetElement { // 名前変更
+  createDefaultHostMountPoint(): TextTargetElement {
+    // 名前変更
     // デフォルトのルート要素として、キーを持つ空の要素を返す
     // この要素が、Rendererによって初期コンテナとして設定される
     const rootElement = { key: 'DEFAULT_HOST_MOUNT_POINT', children: [] };

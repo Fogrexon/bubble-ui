@@ -10,8 +10,11 @@ import type { IReconciler } from './IReconciler'; // IReconciler をインポー
  */
 export class Reconciler implements IReconciler {
   private differ: IDiffer;
+
   private committer: ICommitter;
+
   private currentRootVNode: VNode | null = null;
+
   // Rendererへの参照を保持する
   private renderer: {
     // getRootElement は scheduleUpdate 内で直接は使われなくなったが、
@@ -19,7 +22,6 @@ export class Reconciler implements IReconciler {
     // getHostContainer も同様。
     reRenderRoot: () => void; // Rendererのルート再レンダリング実行メソッド
   } | null = null; // 初期値はnullとし、後から設定する
-
 
   constructor(
     differ: IDiffer,
@@ -31,19 +33,18 @@ export class Reconciler implements IReconciler {
   }
 
   // Rendererインスタンスを設定するメソッド
-  public setRendererContext(rendererContext: {
-    reRenderRoot: () => void;
-  }) {
+  public setRendererContext(rendererContext: { reRenderRoot: () => void }) {
     this.renderer = rendererContext;
   }
 
   private propagateReconcilerInstance(vnode: VNode | null, reconcilerInstance: IReconciler) {
     if (!vnode) return;
+    // eslint-disable-next-line no-param-reassign
     vnode._reconciler = reconcilerInstance;
     if (vnode._children) {
-      for (const child of vnode._children) {
+      vnode._children.forEach((child) => {
         this.propagateReconcilerInstance(child, reconcilerInstance);
-      }
+      });
     }
     // Function componentが返すVNodeにも設定が必要な場合があるが、
     // createElementで生成されるVNodeに初期設定されるか、resolveComponent後に設定するか検討。
@@ -57,16 +58,17 @@ export class Reconciler implements IReconciler {
     } else {
       this.currentRootVNode = null;
     }
-    
+
     const { workUnits, parentVNodeMap } = this.differ.diff(newVNode, oldVNode);
     this.committer.commitWork(workUnits, parentVNodeMap);
   }
 
-  scheduleUpdate(vnodeToUpdate: VNode): void {
-    console.log('scheduleUpdate called for VNode:', vnodeToUpdate);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  scheduleUpdate(_vnodeToUpdate: VNode): void {
+    // console.log('scheduleUpdate called for VNode:', vnodeToUpdate);
 
     if (!this.renderer) {
-      console.warn('Cannot schedule update, renderer context is not set on Reconciler.');
+      // console.warn('Cannot schedule update, renderer context is not set on Reconciler.');
       return;
     }
     // this.renderer が null でないことを確認したので、以降は安全にアクセスできる

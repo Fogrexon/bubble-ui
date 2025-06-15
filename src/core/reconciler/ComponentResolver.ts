@@ -32,6 +32,7 @@ export class ComponentResolver implements IComponentResolver {
   resolveComponent(vnode: VNode, reconciler: IReconciler): VNode | null {
     if (typeof vnode.type === 'function') {
       // 関数コンポーネントのVNodeにReconcilerインスタンスを設定
+      // eslint-disable-next-line no-param-reassign
       vnode._reconciler = reconciler;
       try {
         // 関数コンポーネントを実行する前に prepareHooks を呼び出す
@@ -45,8 +46,8 @@ export class ComponentResolver implements IComponentResolver {
         // 結果がさらに別の関数コンポーネントの場合、それにもReconcilerインスタンスを伝播させる
         if (result && typeof result.type === 'function') {
           // result._reconciler = reconciler; // ここで設定するのは、resultが新しいVNodeインスタンスの場合。
-                                         // createElementで生成される際にreconcilerが設定される方が良いかもしれない。
-                                         // または、この再帰呼び出しの中で設定される。
+          // createElementで生成される際にreconcilerが設定される方が良いかもしれない。
+          // または、この再帰呼び出しの中で設定される。
           return this.resolveComponent(result, reconciler);
         }
 

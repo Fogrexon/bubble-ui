@@ -37,27 +37,25 @@ describe('Committer', () => {
     type: string | Function,
     props: Record<string, any> = {},
     children: VNode[] = []
-  ): VNode => 
-     ({
+  ): VNode =>
+    ({
       _id: id,
       type,
       props: { ...props, children },
       _key: props.key || id, // Ensure key for testing if needed
-    } as VNode)
-  ;
-
+    }) as VNode;
   // Helper to create a WorkUnit
   const createWorkUnit = (
     effectTag: 'PLACEMENT' | 'UPDATE' | 'DELETION',
     vnode: VNode,
     alternate: VNode | null = null,
-    nextSibling: WorkUnit['nextSibling'] = null 
+    nextSibling: WorkUnit['nextSibling'] = null
   ): WorkUnit => ({
-      vnode,
-      alternate,
-      effectTag,
-      nextSibling,
-    });
+    vnode,
+    alternate,
+    effectTag,
+    nextSibling,
+  });
 
   describe('commitWork', () => {
     it('should process deletions, then updates, then placements', () => {
@@ -69,7 +67,7 @@ describe('Committer', () => {
       const updateWork: WorkUnit = createWorkUnit('UPDATE', vnode2, createVNode('id2_alt', 'p'));
       const placementWork: WorkUnit = createWorkUnit('PLACEMENT', vnode3);
 
-      const workUnits: WorkUnit[] = [placementWork, deletionWork, updateWork]; 
+      const workUnits: WorkUnit[] = [placementWork, deletionWork, updateWork];
 
       (committer as any).nativeNodeIdMap.set(vnode1._id!, 'element_for_div_id1');
       (committer as any).nativeNodeIdMap.set(
@@ -83,7 +81,7 @@ describe('Committer', () => {
       expect(mockAdaptor.updateElement).toHaveBeenCalledTimes(1);
       // For PLACEMENT, vnode3 (id3) will be a new root.
       // This will call setHostMountPoint in the current Committer logic.
-      expect(mockAdaptor.setHostMountPoint).toHaveBeenCalledTimes(1); 
+      expect(mockAdaptor.setHostMountPoint).toHaveBeenCalledTimes(1);
 
       vi.clearAllMocks();
       const vnodeDel = createVNode('del1', 'div');
@@ -156,7 +154,7 @@ describe('Committer', () => {
       const childVNode = createVNode('child2', 'p');
       const siblingVNode = createVNode('sibling2', 'span');
       parentVNodeMap.set(childVNode, parentVNode);
-      parentVNodeMap.set(siblingVNode, parentVNode); 
+      parentVNodeMap.set(siblingVNode, parentVNode);
 
       (committer as any).nativeNodeIdMap.set('parent2', 'element_for_div_parent2');
       (committer as any).nativeNodeIdMap.set('sibling2', 'element_for_span_sibling2');
@@ -181,8 +179,8 @@ describe('Committer', () => {
 
     it('should move an existing element to a new position as a child', () => {
       const parentVNode = createVNode('parentMove', 'div');
-      const vnodeToMove = createVNode('nodeToMoveNewId', 'span', { text: 'new' }); 
-      const oldVNodeToMove = createVNode('nodeToMoveOldId', 'span', { text: 'old' }); 
+      const vnodeToMove = createVNode('nodeToMoveNewId', 'span', { text: 'new' });
+      const oldVNodeToMove = createVNode('nodeToMoveOldId', 'span', { text: 'old' });
       parentVNodeMap.set(vnodeToMove, parentVNode);
 
       (committer as any).nativeNodeIdMap.set('parentMove', 'element_for_div_parentMove');
@@ -192,15 +190,15 @@ describe('Committer', () => {
       const workUnit = createWorkUnit('PLACEMENT', vnodeToMove, oldVNodeToMove);
       committer.commitWork([workUnit], parentVNodeMap);
 
-      expect(mockAdaptor.createElement).not.toHaveBeenCalledWith(vnodeToMove); 
+      expect(mockAdaptor.createElement).not.toHaveBeenCalledWith(vnodeToMove);
       expect(mockAdaptor.updateElement).toHaveBeenCalledWith(
-        'element_for_span_nodeToMoveOldId', 
+        'element_for_span_nodeToMoveOldId',
         oldVNodeToMove,
         vnodeToMove
       );
       expect(mockAdaptor.appendChild).toHaveBeenCalledWith(
         'element_for_div_parentMove',
-        'element_for_span_nodeToMoveOldId' 
+        'element_for_span_nodeToMoveOldId'
       );
       expect((committer as any).nativeNodeIdMap.get('nodeToMoveNewId')).toBe(
         'element_for_span_nodeToMoveOldId'
@@ -216,7 +214,7 @@ describe('Committer', () => {
   describe('commitUpdate', () => {
     it('should update an existing element', () => {
       const oldVNode = createVNode('update1_old', 'div', { text: 'old' });
-      const newVNode = createVNode('update1_new', 'div', { text: 'new' }); 
+      const newVNode = createVNode('update1_new', 'div', { text: 'new' });
 
       (committer as any).nativeNodeIdMap.set('update1_old', 'element_for_div_update1_old');
 
@@ -252,7 +250,7 @@ describe('Committer', () => {
         oldVNode
       );
       expect(mockAdaptor.updateElement).toHaveBeenCalledWith(
-        'element_for_div_updateFallback_new', 
+        'element_for_div_updateFallback_new',
         oldVNode,
         newVNode
       );
@@ -268,7 +266,7 @@ describe('Committer', () => {
       committer.commitWork([workUnit], parentVNodeMap);
 
       expect(mockAdaptor.updateElement).not.toHaveBeenCalled();
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(2); 
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
       consoleErrorSpy.mockRestore();
     });
   });
@@ -318,8 +316,8 @@ describe('Committer', () => {
       const child1 = createVNode('delChild1Recursive', 'p');
       const grandchild1 = createVNode('delGrandchild1Recursive', 'span');
       child1.props.children = [grandchild1];
-      parentVNode.props.children = [child1]; 
-      parentVNodeMap.set(child1, parentVNode); 
+      parentVNode.props.children = [child1];
+      parentVNodeMap.set(child1, parentVNode);
 
       (committer as any).nativeNodeIdMap.set(
         'delParentRecursive',
@@ -334,7 +332,7 @@ describe('Committer', () => {
         'element_for_span_delGrandchild1Recursive'
       );
 
-      const workUnit = createWorkUnit('DELETION', child1); 
+      const workUnit = createWorkUnit('DELETION', child1);
       committer.commitWork([workUnit], parentVNodeMap);
 
       expect(mockAdaptor.removeChild).toHaveBeenCalledWith(
@@ -351,7 +349,7 @@ describe('Committer', () => {
     });
 
     it('should warn if VNode has no _id for deletion', () => {
-      const vnodeNoId = { type: 'div', props: {} } as VNode; 
+      const vnodeNoId = { type: 'div', props: {} } as VNode;
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const workUnit = createWorkUnit('DELETION', vnodeNoId);
@@ -369,7 +367,7 @@ describe('Committer', () => {
 
   describe('Error Handling and Edge Cases', () => {
     it('should log error and skip non-deletion work unit if VNode has no _id', () => {
-      const vnodeNoId = { type: 'div', props: {} } as VNode; 
+      const vnodeNoId = { type: 'div', props: {} } as VNode;
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const workUnit = createWorkUnit('PLACEMENT', vnodeNoId);
@@ -389,7 +387,7 @@ describe('Committer', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const workUnit = {
         vnode,
-        effectTag: 'UNKNOWN_TAG' as any, 
+        effectTag: 'UNKNOWN_TAG' as any,
       } as WorkUnit;
 
       committer.commitWork([workUnit], parentVNodeMap);

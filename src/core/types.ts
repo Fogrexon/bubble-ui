@@ -1,7 +1,7 @@
 import type { IReconciler } from './reconciler/IReconciler'; // 新しいIReconcilerをインポート
 
 // eslint-disable-next-line no-use-before-define
-export type ElementType = string | FunctionComponent;
+export type ElementType = string | FunctionNode;
 
 /**
  * Property interface
@@ -40,7 +40,7 @@ export interface VNode {
  * Function component type
  */
 // eslint-disable-next-line no-use-before-define
-export type FunctionComponent<P = {}> = (props: P & { children?: VNode[] }) => VNode | null;
+export type FunctionNode<P = {}> = (props: P & { children?: VNode[] }) => VNode | null;
 
 /**
  * Work unit for reconciler
@@ -51,3 +51,8 @@ export interface WorkUnit {
   alternate?: VNode | null;
   nextSibling?: VNode | null;
 }
+
+// for jsx function component
+// @ts-ignore
+// eslint-disable-next-line no-undef
+export type BubbleFC<P = {}> = (props: P) => JSX.Element | null;

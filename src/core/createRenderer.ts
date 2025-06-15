@@ -22,7 +22,7 @@ export const createRenderer = <TargetElement>(
   // ReconcilerにRendererのコンテキストを設定
   // RendererクラスがReconcilerの期待するインターフェースを提供する必要がある
   reconciler.setRendererContext({
-    reRenderRoot: () => rendererInstance.reRenderRoot()
+    reRenderRoot: () => rendererInstance.reRenderRoot(),
   });
 
   return rendererInstance;

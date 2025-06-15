@@ -11,12 +11,21 @@ interface EffectHook {
 
 // useEffectの実装
 export function useEffect(effect: () => (() => void) | void, deps?: any[]) {
-  const { index: currentHookIndex, hooks, vnode: currentVNode } = getCurrentHookState<EffectHook>(); // component を vnode に変更
+  const {
+    index: currentHookIndex,
+    hooks,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    vnode: _currentVNode,
+  } = getCurrentHookState<EffectHook>(); // component を vnode に変更, currentVNode to _currentVNode
 
   const oldHookState = hooks[currentHookIndex];
   const oldDeps = oldHookState ? oldHookState.deps : undefined;
 
-  const hasChangedDeps = deps ? !oldDeps || deps.some((dep, i) => !Object.is(dep, oldDeps[i])) || deps.length !== oldDeps.length : true;
+  const hasChangedDeps = deps
+    ? !oldDeps ||
+      deps.some((dep, i) => !Object.is(dep, oldDeps[i])) ||
+      deps.length !== oldDeps.length
+    : true;
 
   if (hasChangedDeps) {
     // 副作用とその依存関係、クリーンアップ関数を保存する
@@ -31,7 +40,8 @@ export function useEffect(effect: () => (() => void) | void, deps?: any[]) {
 }
 
 // useEffectの副作用を実行し、クリーンアップ関数を登録するヘルパー (commitHooksから呼ばれる想定)
-export function runEffect(vnode: VNode, hookIndex: number) { // component を vnode に変更
+export function runEffect(vnode: VNode, hookIndex: number) {
+  // component を vnode に変更
   if (!vnode || !vnode._hooks || !vnode._hooks[hookIndex]) {
     return;
   }
@@ -56,20 +66,23 @@ export function runEffect(vnode: VNode, hookIndex: number) { // component を vn
     // }
 
     const cleanup = hook.effect();
+    // eslint-disable-next-line no-param-reassign
     vnode._hooks[hookIndex].cleanup = cleanup;
+    // eslint-disable-next-line no-param-reassign
     vnode._hooks[hookIndex].hasRun = true;
   }
 }
 
 // useEffectのクリーンアップを実行するヘルパー (cleanupHooksから呼ばれる想定)
-export function cleanupEffect(vnode: VNode, hookIndex: number) { // component を vnode に変更
-    if (!vnode || !vnode._hooks || !vnode._hooks[hookIndex]) {
-        return;
-    }
-    const hook: EffectHook = vnode._hooks[hookIndex];
-    if (hook && typeof hook.cleanup === 'function') {
-        hook.cleanup();
-        // クリーンアップ後、再度実行されないようにするなどの処理が必要な場合がある
-        // vnode._hooks[hookIndex].cleanup = undefined; // 例えば
-    }
+export function cleanupEffect(vnode: VNode, hookIndex: number) {
+  // component を vnode に変更
+  if (!vnode || !vnode._hooks || !vnode._hooks[hookIndex]) {
+    return;
+  }
+  const hook: EffectHook = vnode._hooks[hookIndex];
+  if (hook && typeof hook.cleanup === 'function') {
+    hook.cleanup();
+    // クリーンアップ後、再度実行されないようにするなどの処理が必要な場合がある
+    // vnode._hooks[hookIndex].cleanup = undefined; // 例えば
+  }
 }

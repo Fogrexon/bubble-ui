@@ -12,9 +12,13 @@ import { commitHooks, cleanupHooks } from './hooks'; // commitHooks と cleanupH
  */
 export class Renderer<TargetElement = unknown> {
   private previousVNode: VNode | null = null; // 解決後の previous VNode tree root
+
   private readonly hostContainer: TargetElement; // 不変のホストコンテナ
+
   private rootElementType: VNode['type'] | null = null; // 現在のアプリルートの型
+
   private rootElementProps: VNode['props'] | null = null; // 現在のアプリルートのprops
+
   private lastAppRootElement: VNode | null = null; // 最後にrenderに渡された解決前のアプリルートVNode
 
   private reconcilerInstance: IReconciler;
@@ -58,30 +62,34 @@ export class Renderer<TargetElement = unknown> {
   public render(element: VNode | null): void {
     if (!this.hostContainer) {
       // これはコンストラクタで設定されるため、通常発生しないはず
-      console.error("Renderer: Host container is not initialized.");
+      console.error('Renderer: Host container is not initialized.');
       return;
     }
-    
+
     // アプリケーションのルートVNode情報を保存/更新
     if (element) {
       // 初回またはルートコンポーネントの型が変わった場合にのみtype/propsを更新する方が良いかもしれないが、
       // reRenderRootで使うために常に最新のelementのtype/propsを保存しておく。
       this.rootElementType = element.type;
       this.rootElementProps = element.props;
-      this.lastAppRootElement = element; 
+      this.lastAppRootElement = element;
     } else {
       // アンマウントの場合、ルート情報をクリアする（あるいは保持したままにするか設計による）
       // this.rootElementType = null;
       // this.rootElementProps = null;
     }
-    
+
     const resolvedVNode =
       element && typeof element.type === 'function'
         ? this.componentResolver.resolveComponent(element, this.reconcilerInstance)
         : element;
 
     // アンマウント時のクリーンアップ
-    if (element === null && this.lastAppRootElement && typeof this.lastAppRootElement.type === 'function') {
+    if (
+      element === null &&
+      this.lastAppRootElement &&
+      typeof this.lastAppRootElement.type === 'function'
+    ) {
       cleanupHooks(this.lastAppRootElement);
     }
 
@@ -135,10 +143,10 @@ export class Renderer<TargetElement = unknown> {
         newRootElement._hooks = this.lastAppRootElement._hooks;
         newRootElement._reconciler = this.lastAppRootElement._reconciler;
       }
-      
+
       this.render(newRootElement); // container引数は削除された
     } else {
-      console.warn("Cannot re-render root, root element information or container not available.");
+      console.warn('Cannot re-render root, root element information or container not available.');
     }
   }
 }

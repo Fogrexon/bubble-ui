@@ -18,7 +18,8 @@ declare global {
     // For simplicity, we'll allow any props for now.
     // A more robust solution would define specific attributes for each tag.
     interface IntrinsicElements {
-      element: { // 'element' タグがdivのように振る舞うようにプロパティを定義
+      element: {
+        // 'element' タグがdivのように振る舞うようにプロパティを定義
         key?: string | number;
         id?: string;
         className?: string;
@@ -29,7 +30,7 @@ declare global {
         onMouseDown?: (event: any) => void; // MouseEvent はブラウザ環境依存なので any に変更
         // 他のHTML属性も必要に応じて追加
         // src, alt は element が画像などを表す場合に使うが、div相当なら不要かもしれない
-        // src?: string; 
+        // src?: string;
         // alt?: string;
         [key: string]: any; // その他の任意の属性を許可
       };

@@ -13,9 +13,14 @@ export function useMemo<T>(factory: () => T, deps?: any[]): T {
   const oldHookState = hooks[currentHookIndex];
   const oldDeps = oldHookState ? oldHookState.deps : undefined;
 
-  const hasChangedDeps = deps ? !oldDeps || deps.some((dep, i) => !Object.is(dep, oldDeps[i])) || deps.length !== oldDeps.length : true;
+  const hasChangedDeps = deps
+    ? !oldDeps ||
+      deps.some((dep, i) => !Object.is(dep, oldDeps[i])) ||
+      deps.length !== oldDeps.length
+    : true;
 
-  if (hasChangedDeps || !oldHookState) { // oldHookStateが存在しない場合も再計算 (初回など)
+  if (hasChangedDeps || !oldHookState) {
+    // oldHookStateが存在しない場合も再計算 (初回など)
     const value = factory();
     setHookState(currentHookIndex, { value, deps });
     incrementHookIndex();
