@@ -80,8 +80,8 @@ describe('Committer', () => {
       expect(mockAdaptor.deleteElement).toHaveBeenCalledTimes(1);
       expect(mockAdaptor.updateElement).toHaveBeenCalledTimes(1);
       // For PLACEMENT, vnode3 (id3) will be a new root.
-      // This will call setHostMountPoint in the current Committer logic.
-      expect(mockAdaptor.setHostMountPoint).toHaveBeenCalledTimes(1);
+      // This will call displayAppRootOnHost in the current Committer logic.
+      expect(mockAdaptor.displayAppRootOnHost).toHaveBeenCalledTimes(1);
 
       vi.clearAllMocks();
       const vnodeDel = createVNode('del1', 'div');
@@ -106,7 +106,7 @@ describe('Committer', () => {
         alternateUpd,
         vnodeUpd
       );
-      expect(mockAdaptor.setHostMountPoint).toHaveBeenCalledWith('element_for_span_pla1'); // 名前変更
+      expect(mockAdaptor.displayAppRootOnHost).toHaveBeenCalledWith('element_for_span_pla1');
     });
   });
 
@@ -119,7 +119,7 @@ describe('Committer', () => {
 
       expect(mockAdaptor.createElement).toHaveBeenCalledWith(vnode);
       expect(mockAdaptor.updateElement).not.toHaveBeenCalled();
-      expect(mockAdaptor.setHostMountPoint).toHaveBeenCalledWith('element_for_div_root1'); // 名前変更
+      expect(mockAdaptor.displayAppRootOnHost).toHaveBeenCalledWith('element_for_div_root1');
       expect(mockAdaptor.appendChild).not.toHaveBeenCalled();
       expect(mockAdaptor.insertChild).not.toHaveBeenCalled();
     });
@@ -146,7 +146,7 @@ describe('Committer', () => {
         'element_for_p_child1'
       );
       expect(mockAdaptor.insertChild).not.toHaveBeenCalled();
-      expect(mockAdaptor.setHostMountPoint).not.toHaveBeenCalled(); // 名前変更
+      expect(mockAdaptor.displayAppRootOnHost).not.toHaveBeenCalled();
     });
 
     it('should place a new child element before a sibling', () => {
@@ -302,7 +302,7 @@ describe('Committer', () => {
       const workUnit = createWorkUnit('DELETION', vnodeToDelete);
       committer.commitWork([workUnit], parentVNodeMap);
 
-      expect(mockAdaptor.setHostMountPoint).toHaveBeenCalledWith(null); // 名前変更
+      expect(mockAdaptor.displayAppRootOnHost).toHaveBeenCalledWith(null);
       expect(mockAdaptor.deleteElement).toHaveBeenCalledWith(
         'element_for_div_deleteRoot1',
         vnodeToDelete

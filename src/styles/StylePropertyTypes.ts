@@ -1,24 +1,29 @@
 export type StrictStyleProperty = {
-    font: string;
+    fontFamily: string;
     fontSize: string;
     fontWeight: string;
     fontStyle: string;
+    font: string;
 
     color: string;
     textAlign: string;
 
     backgroundColor: string;
-    border: string;
+    brackgroundImage: string;
+    background: string;
+
     borderRadius: string;
+    
     borderColor: string;
     borderWidth: string;
+    borderStyle: string;
+    border: string;
 
     padding: string;
     margin: string;
     width: string;
     height: string;
 
-    display: string;
     position: string;
     top: string;
     left: string;

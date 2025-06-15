@@ -3,7 +3,7 @@ import {
   parserGenerator,
   type PrimitiveTokenDefinition,
   type UnorderedDefinition,
-} from 'bubble-ui-style-engine/src';
+} from 'bubble-ui-style-engine';
 
 const fontFamilyRule: PrimitiveTokenDefinition = {
   type: 'primitive',
@@ -12,22 +12,6 @@ const fontFamilyRule: PrimitiveTokenDefinition = {
 }
 const fontFamilyParser = parserGenerator(fontFamilyRule)
 
-type FontFamiltyNodeTree = {
-  type: 'branch',
-  id: 'root',
-  children: [
-    {
-      type: 'branch',
-      id: 'fontFamily',
-      children: [
-        {
-          type: 'leaf',
-          value: 'sans-serif' | 'serif',
-        }
-      ]
-    }
-  ]
-}
 export type FontFamilyInterpreted = {
   fontFamily: string
 }
@@ -51,8 +35,9 @@ const fontSizeParser = parserGenerator(fontSizeRule)
 export type FontSizeInterpreted = {
   fontSize: string
 }
-export const fontSizeInterpreter = (value: string) => {
-  const ast: ASTNode = fontSizeParser(value);
+export const fontSizeInterpreter = (value: string): FontSizeInterpreted => {
+  const ast = fontSizeParser(value);
+  // @ts-ignore
   const fontSizeNode = ast.children[0].children[0]
   return {
     fontSize: `${fontSizeNode.value}${fontSizeNode.unit}`
@@ -69,8 +54,9 @@ const fontWeightParser = parserGenerator(fontWeightRule)
 export type FontWeightInterpreted = {
   fontWeight: string;
 }
-export const fontWeightInterpreter = (value: string) => {
-  const ast: ASTNode = fontWeightParser(value);
+export const fontWeightInterpreter = (value: string): FontWeightInterpreted => {
+  const ast = fontWeightParser(value);
+  // @ts-ignore
   const fontWeightNode = ast.children[0].children[0]
   return {
     fontWeight: fontWeightNode.value,
@@ -87,8 +73,9 @@ const fontStyleParser = parserGenerator(fontStyleRule)
 export type FontStyleInterpreted = {
   fontStyle: string;
 }
-export const fontStyleInterpreter = (value: string) => {
-  const ast: ASTNode = fontStyleParser(value);
+export const fontStyleInterpreter = (value: string): FontStyleInterpreted => {
+  const ast = fontStyleParser(value);
+  // @ts-ignore
   const fontStyleNode = ast.children[0].children[0]
   return {
     fontStyle: fontStyleNode.value,
@@ -113,18 +100,23 @@ export type FontInterpreted = {
   fontWeight?: string;
   fontStyle?: string;
 }
-export const fontInterpreter = (value: string) => {
-  const ast: ASTNode = fontParser(value);
+export const fontInterpreter = (value: string): FontInterpreted => {
+  const ast = fontParser(value);
   const result: FontInterpreted = {};
+  // @ts-ignore
   ast.children[0].children.forEach((child) => {
     if (child.id === 'fontFamily') {
+      // @ts-ignore
       result.fontFamily = child.children[0].value;
     } else if (child.id === 'fontSize') {
+      // @ts-ignore
       const fontSizeNode = child.children[0];
       result.fontSize = `${fontSizeNode.value}${fontSizeNode.unit}`;
     } else if (child.id === 'fontWeight') {
+      // @ts-ignore
       result.fontWeight = child.children[0].value;
     } else if (child.id === 'fontStyle') {
+      // @ts-ignore
       result.fontStyle = child.children[0].value;
     }
   });
