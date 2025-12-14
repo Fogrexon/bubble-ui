@@ -27,6 +27,7 @@ The development process is centered around GitHub Issues and Pull Requests.
 1. Check or create a GitHub Issue for the task. Ensure tasks are granular and separate issues are created for distinct features or changes.
    - **Issue Creation Guidelines:**
      - Follow the project's Issue Template located at `.github/ISSUE_TEMPLATE/issue_template.md` (Overview, Problem, Request).
+     - To create an issue using the `gh` CLI, first write the issue body to a temporary file (e.g., in `llm-workspace/issue_body.md`) and then use `gh issue create --body-file llm-workspace/issue_body.md`.
      - Write descriptions from the perspective of the **issue creator**. Use appropriate politeness but avoid being overly humble.
 2. Make changes to the source code.
 3. Run tests to ensure functionality. For single, non-interactive test runs, use the `npm run test:once` command.
@@ -34,6 +35,7 @@ The development process is centered around GitHub Issues and Pull Requests.
 5. Submit a Pull Request linked to the Issue.
    - **PR Creation Guidelines:**
      - Follow the project's Pull Request Template located at `.github/pull_request_template.md`.
+     - To create a pull request using the `gh` CLI, first write the PR body to a temporary file (e.g., in `llm-workspace/pr_body.md`) and then use `gh pr create --body-file llm-workspace/pr_body.md`.
 
 ## Dependencies
 - TypeScript for type checking
