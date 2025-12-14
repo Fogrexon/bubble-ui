@@ -9,8 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: Install packages
         run: npm ci
+      - name: Install bubble-ui-style-engine dependencies and build
+        run: |
+          cd libs/bubble-ui-style-engine
+          npm ci
+          npm run build
       - name: Prettier
         run: npm run lint:prettier
       - name: ESLint

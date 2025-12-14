@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: true
       - uses: actions/setup-node@v2
         with:
           node-version: '22.x'
@@ -15,6 +17,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: npm install
+      - name: Install bubble-ui-style-engine dependencies and build
+        run: |
+          cd libs/bubble-ui-style-engine
+          npm install
+          npm run build
       - run: npm run build
       - run: npm publish
         env:
