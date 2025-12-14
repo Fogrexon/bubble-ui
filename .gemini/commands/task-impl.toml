@@ -1,0 +1,6 @@
+description = "Implement the task described in TASK.md."
+prompt = """
+Please implement the task described in the `TASK.md` file.
+
+Read the `TASK.md` file in the current directory and perform the implementation based on its content.
+"""
