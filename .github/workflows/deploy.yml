@@ -11,7 +11,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -19,6 +21,11 @@ jobs:
       - name: npm install
         run: |
           npm install
+      - name: Install bubble-ui-style-engine dependencies and build
+        run: |
+          cd libs/bubble-ui-style-engine
+          npm install
+          npm run build
       - name: Build App
         run: npm run docs
       - name: App Deploy

@@ -1,5 +1,6 @@
 import type { VNode, WorkUnit } from '../types';
 import type { IRendererAdaptor } from '../IRendererAdaptor.ts';
+// import { cleanupHooks, commitHooks } from '../hooks'; // 削除
 
 /**
  * Interface for the committer.
@@ -31,6 +32,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       deletions: WorkUnit[];
       updates: WorkUnit[];
       placements: WorkUnit[];
+      // effectWorkUnits: WorkUnit[]; // 削除
     };
     const groupedWorkUnits = workUnits.reduce<GroupedWorkUnits>(
       (acc, unit) => {
@@ -48,13 +50,16 @@ export class Committer<TargetElement = unknown> implements ICommitter {
           acc.deletions.push(unit);
         } else if (unit.effectTag === 'UPDATE') {
           acc.updates.push(unit);
+          // acc.effectWorkUnits.push(unit); // 削除
         } else if (unit.effectTag === 'PLACEMENT') {
           acc.placements.push(unit);
+          // acc.effectWorkUnits.push(unit); // 削除
         } else {
           console.warn('Unknown effect tag:', unit.effectTag, 'for VNode:', unit.vnode);
         }
         return acc;
       },
+      // { deletions: [], updates: [], placements: [], effectWorkUnits: [] } // 変更
       { deletions: [], updates: [], placements: [] }
     );
 
@@ -62,6 +67,14 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     groupedWorkUnits.deletions.forEach((unit) => this.commitDeletion(unit, parentVNodeMap));
     groupedWorkUnits.updates.forEach((unit) => this.commitUpdate(unit));
     groupedWorkUnits.placements.forEach((unit) => this.commitPlacement(unit, parentVNodeMap));
+
+    // Call commitHooks for all updated and placed functional components // 削除
+    // This should happen after all DOM mutations are complete // 削除
+    // groupedWorkUnits.effectWorkUnits.forEach(unit => { // 削除
+    //   if (typeof unit.vnode.type === 'function') { // 削除
+    //     commitHooks(unit.vnode); // 削除
+    //   } // 削除
+    // }); // 削除
   }
 
   // --- Private Commit Methods ---
@@ -73,7 +86,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     // New root node won't have a parent in the map
     if (!parentVNode && !this.nativeNodeIdMap.has(vnodeId)) {
       const element = this.createAndMapElement(workUnit.vnode);
-      this.adaptor.setRootContainer(element);
+      this.adaptor.displayAppRootOnHost(element); // displayAppRootOnHost を使用
       // createAndMapElement で nativeNodeIdMap に登録済み
       return;
     }
@@ -124,7 +137,7 @@ export class Committer<TargetElement = unknown> implements ICommitter {
       }
     } else if (!parentVNode) {
       // This is the root element being placed/updated
-      this.adaptor.setRootContainer(element);
+      this.adaptor.displayAppRootOnHost(element); // displayAppRootOnHost を使用
     }
   }
 
@@ -168,11 +181,18 @@ export class Committer<TargetElement = unknown> implements ICommitter {
   }
 
   private commitDeletion(workUnit: WorkUnit, parentVNodeMap: WeakMap<VNode, VNode>): void {
-    const vnodeId = workUnit.vnode._id;
+    const vnodeToDelete = workUnit.vnode;
+    const vnodeId = vnodeToDelete._id;
+
+    // クリーンアップフックの実行 (関数コンポーネントの場合) // 削除
+    // if (typeof vnodeToDelete.type === 'function') { // 削除
+    //   cleanupHooks(vnodeToDelete); // 削除
+    // } // 削除
+
     if (!vnodeId) {
-      console.warn('Cannot commit deletion: VNode is missing _id.', workUnit.vnode);
+      console.warn('Cannot commit deletion: VNode is missing _id.', vnodeToDelete);
       // IDがない場合、マップからの削除はできないが、子の再帰的削除は試みる
-      this.recursivelyDelete(workUnit.vnode, true);
+      this.recursivelyDelete(vnodeToDelete, true);
       return;
     }
 
@@ -195,8 +215,9 @@ export class Committer<TargetElement = unknown> implements ICommitter {
           parentVNode._id
         );
       }
-    } else if (this.adaptor.getRootContainer() === element) {
-      this.adaptor.setRootContainer(null);
+    } else if (this.adaptor.getHostMountPoint() === element) {
+      // ルート要素の削除の場合、displayAppRootOnHost(null) を呼び出す
+      this.adaptor.displayAppRootOnHost(null);
     } else {
       console.warn(
         'Cannot commit deletion: No parent VNode with ID found and not root element. ID:',

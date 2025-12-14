@@ -70,17 +70,18 @@ export interface IRendererAdaptor<TargetElement = unknown> {
   removeEventListener(element: TargetElement, eventType: string, listener: Function): void;
 
   /**
-   * Gets the root container element for the rendering target.
-   * @returns The native root container element.
+   * Gets the host mount point element for the rendering target.
+   * This is the actual root element in the host environment where the app is rendered.
+   * @returns The native host mount point element.
    */
-  getRootContainer(): TargetElement | null;
+  getHostMountPoint(): TargetElement | null;
 
   /**
-   * Sets the root container element for the rendering target.
-   * This is typically called when initializing the renderer or changing the root container.
-   * @param container The native root container element to set.
+   * Sets the host mount point element for the rendering target.
+   * This is typically called when initializing the renderer.
+   * @param mountPoint The native host mount point element to set.
    */
-  setRootContainer(container: TargetElement | null): void;
+  setHostMountPoint(mountPoint: TargetElement | null): void;
 
   /**
    * Deletes a native element instance.
@@ -89,4 +90,18 @@ export interface IRendererAdaptor<TargetElement = unknown> {
    * @param vnode The VNode corresponding to the element being deleted.
    */
   deleteElement(element: TargetElement, vnode: VNode): void;
+
+  /**
+   * Creates a default host mount point element for the rendering target.
+   * This is used if no explicit mount point is provided to the renderer.
+   * @returns The created default host mount point element.
+   */
+  createDefaultHostMountPoint(): TargetElement;
+
+  /**
+   * Displays or sets the given element as the root of the application within the host mount point.
+   * If appRootElement is null, it should clear the content of the host mount point related to the app root.
+   * @param appRootElement The native element репреsenting the root of the application, or null to clear.
+   */
+  displayAppRootOnHost(appRootElement: TargetElement | null): void;
 }

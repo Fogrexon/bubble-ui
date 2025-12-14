@@ -2,12 +2,14 @@ module.exports = {
   env: {
     browser: true,
     es2021: true,
+    node: true,
   },
   extends: ['airbnb-base', 'eslint-config-prettier'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 12,
     sourceType: 'module',
+    project: './tsconfig.json',
   },
   plugins: ['@typescript-eslint'],
   rules: {
@@ -35,6 +37,9 @@ module.exports = {
         './.storybook/**/*.{js,jsx,ts,tsx}',
       ],
       // テストファイルに対して適用するルール設定
+      env: {
+        jest: true,
+      },
       rules: {
         'import/no-extraneous-dependencies': [
           'error',
