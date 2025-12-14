@@ -11,12 +11,13 @@
     "lint:prettier": "prettier \"./src/**/*.ts\"",
     "lint:eslint": "eslint \"./src/**/*.ts\"",
     "lint:fix": "prettier \"./src/**/*.ts\" --write & eslint \"./src/**/*.ts\" --fix",
-    "docs": "typedoc --out docs/ ./src/",
+    "docs": "npx typedoc --options typedoc.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "publish:docs": "echo 'Deploying docs to GitHub Pages... (Implementation for gh-pages deployment goes here)'"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,7 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.31.0",
     "prettier": "^3.5.3",
-    "typedoc": "^0.28.4",
+    "typedoc": "^0.28.15",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
     "vite-plugin-dts": "^4.5.3",
