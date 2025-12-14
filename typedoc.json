@@ -1,0 +1,20 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["./src/index.ts"],
+  "tsconfig": "./tsconfig.json",
+  "out": "./docs",
+  "projectDocuments": [
+    "./lib-docs/overview.md",
+    "./lib-docs/build-process.md",
+    "./lib-docs/quickstart.md",
+    "./lib-docs/config-details.md",
+    "./lib-docs/ja/overview-ja.md",
+    "./lib-docs/ja/build-process-ja.md",
+    "./lib-docs/ja/quickstart-ja.md",
+    "./lib-docs/ja/config-details-ja.md"
+  ],
+  "exclude": [
+    "./src/sample/**/*",
+    "./src/jsx/**/*"
+  ]
+}
