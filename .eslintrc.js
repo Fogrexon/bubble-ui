@@ -37,6 +37,9 @@ module.exports = {
         './.storybook/**/*.{js,jsx,ts,tsx}',
       ],
       // テストファイルに対して適用するルール設定
+      env: {
+        jest: true,
+      },
       rules: {
         'import/no-extraneous-dependencies': [
           'error',

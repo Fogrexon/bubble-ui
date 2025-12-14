@@ -1,7 +1,6 @@
 import {
   parserGenerator,
   type PrimitiveTokenDefinition,
-  type UnorderedDefinition,
 } from 'bubble-ui-style-engine';
 
 // Color Definition

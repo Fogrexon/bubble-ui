@@ -1,5 +1,4 @@
 import {
-  type ASTNode,
   parserGenerator,
   type PrimitiveTokenDefinition,
   type UnorderedDefinition,
