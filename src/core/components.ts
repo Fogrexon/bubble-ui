@@ -1,34 +1,61 @@
-import { UIBuilder } from './UIBuilder';
+/* eslint-disable max-classes-per-file */
+import { UIBuilder, asUIElement, type UIElement } from './UIBuilder';
+
+type ChildInput = UIBuilder | string | number | boolean | null | undefined;
 
 /**
- * Creates a generic UI element builder with an arbitrary type string.
- * @param type - The element type identifier (e.g. 'VStack', 'Text').
- * @param children - Child builders, text content, or falsy values.
+ * A vertically stacked container element.
+ * Suitable for pixi.js/yoga-layout column layout (renders as 'VStack' type).
+ *
+ * @example
+ * ```ts
+ * new VStack(
+ *   new Text('Hello').key('title'),
+ * ).key('root').style({ padding: 16 }).build();
+ * ```
  */
-export const Element = (
-  type: string,
-  ...children: (UIBuilder | string | number | boolean | null | undefined)[]
-) => new UIBuilder(type, children);
+export class VStack extends UIBuilder {
+  constructor(...children: ChildInput[]) {
+    super('VStack', children);
+    // eslint-disable-next-line no-constructor-return
+    return asUIElement(this) as unknown as VStack;
+  }
+}
 
 /**
- * Creates a vertically stacked container element (maps to 'VStack' type).
- * Suitable for future pixi.js/yoga-layout column layout.
- * @param children - Child builders or text content.
+ * A horizontally stacked container element.
+ * Suitable for pixi.js/yoga-layout row layout (renders as 'HStack' type).
  */
-export const VStack = (...children: (UIBuilder | string | number | boolean | null | undefined)[]) =>
-  // 後にpixi/yogaで適切なタイプマッピング等を行う前提
-  Element('VStack', ...children);
+export class HStack extends UIBuilder {
+  constructor(...children: ChildInput[]) {
+    super('HStack', children);
+    // eslint-disable-next-line no-constructor-return
+    return asUIElement(this) as unknown as HStack;
+  }
+}
 
 /**
- * Creates a horizontally stacked container element (maps to 'HStack' type).
- * Suitable for future pixi.js/yoga-layout row layout.
- * @param children - Child builders or text content.
- */
-export const HStack = (...children: (UIBuilder | string | number | boolean | null | undefined)[]) =>
-  Element('HStack', ...children);
-
-/**
- * Creates a text element builder.
+ * A text element.
  * @param content - The string or number to display.
  */
-export const Text = (content: string | number) => Element('Text', content);
+export class Text extends UIBuilder {
+  constructor(content: string | number) {
+    super('Text', [content]);
+    // eslint-disable-next-line no-constructor-return
+    return asUIElement(this) as unknown as Text;
+  }
+}
+
+/**
+ * A generic UI element with an arbitrary type string.
+ * Use when you need a type that is not covered by the built-in components.
+ */
+export class Element extends UIBuilder {
+  constructor(type: string, ...children: ChildInput[]) {
+    super(type, children);
+    // eslint-disable-next-line no-constructor-return
+    return asUIElement(this) as unknown as Element;
+  }
+}
+
+export type { UIElement };
