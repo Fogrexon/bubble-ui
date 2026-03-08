@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Element, Text, VStack, HStack } from './components';
-import { Component, UIBuilder } from './UIBuilder';
+import { Component } from './Component';
+import { UIBuilder } from './UIBuilder';
 
 describe('UIBuilder / Components', () => {
   it('should build a simple Text element with properties', () => {
@@ -66,7 +67,7 @@ describe('UIBuilder / Components', () => {
     expect(vnode.props.children![1].props.children![0]._text).toBe('always2');
   });
 
-  it('should resolve a custom Component inside a UIBuilder tree', () => {
+  it('should build a custom Component inside a UIBuilder tree without pre-resolving', () => {
     type LabelProps = { text: string; subtitle: string };
 
     class LabelCard extends Component<LabelProps> {
@@ -82,15 +83,13 @@ describe('UIBuilder / Components', () => {
       .key('root')
       .build();
 
-    // The root VStack should have one child: the resolved LabelCard
+    // The root VStack should have one child: the LabelCard class (as VNode type)
     expect(vnode.type).toBe('VStack');
     expect(vnode.props.children).toHaveLength(1);
 
     const cardVNode = vnode.props.children![0];
-    expect(cardVNode.type).toBe('VStack');
-    expect(cardVNode._key).toBe('label-card');
-    expect(cardVNode.props.children).toHaveLength(2);
-    expect(cardVNode.props.children![0]._key).toBe('label-title');
-    expect(cardVNode.props.children![1]._key).toBe('label-sub');
+    expect(cardVNode.type).toBe(LabelCard);
+    expect(cardVNode.props.text).toBe('Hello');
+    expect(cardVNode.props.subtitle).toBe('World');
   });
 });

@@ -1,6 +1,5 @@
 import type { VNode, WorkUnit } from '../types';
 import type { IRendererAdaptor } from '../IRendererAdaptor.ts';
-// import { cleanupHooks, commitHooks } from '../hooks'; // 削除
 
 /**
  * Interface for the committer.
@@ -28,53 +27,34 @@ export class Committer<TargetElement = unknown> implements ICommitter {
   }
 
   commitWork(workUnits: WorkUnit[], parentVNodeMap: WeakMap<VNode, VNode>): void {
-    type GroupedWorkUnits = {
-      deletions: WorkUnit[];
-      updates: WorkUnit[];
-      placements: WorkUnit[];
-      // effectWorkUnits: WorkUnit[]; // 削除
-    };
-    const groupedWorkUnits = workUnits.reduce<GroupedWorkUnits>(
+    const groupedWorkUnits = workUnits.reduce(
       (acc, unit) => {
         if (!unit.vnode._id && unit.effectTag !== 'DELETION') {
-          // DELETION 以外の操作で ID がない場合はエラー (DifferがIDを付与する責務を持つため)
           console.error(
             'Committer: VNode is missing _id for non-deletion operation.',
             unit.vnode,
             unit.effectTag
           );
-          // この WorkUnit はスキップするか、エラー処理を行う
           return acc;
         }
         if (unit.effectTag === 'DELETION') {
           acc.deletions.push(unit);
         } else if (unit.effectTag === 'UPDATE') {
           acc.updates.push(unit);
-          // acc.effectWorkUnits.push(unit); // 削除
         } else if (unit.effectTag === 'PLACEMENT') {
           acc.placements.push(unit);
-          // acc.effectWorkUnits.push(unit); // 削除
         } else {
           console.warn('Unknown effect tag:', unit.effectTag, 'for VNode:', unit.vnode);
         }
         return acc;
       },
-      // { deletions: [], updates: [], placements: [], effectWorkUnits: [] } // 変更
-      { deletions: [], updates: [], placements: [] }
+      { deletions: [] as WorkUnit[], updates: [] as WorkUnit[], placements: [] as WorkUnit[] }
     );
 
     // Process in order: Deletions -> Updates -> Placements
     groupedWorkUnits.deletions.forEach((unit) => this.commitDeletion(unit, parentVNodeMap));
     groupedWorkUnits.updates.forEach((unit) => this.commitUpdate(unit));
     groupedWorkUnits.placements.forEach((unit) => this.commitPlacement(unit, parentVNodeMap));
-
-    // Call commitHooks for all updated and placed functional components // 削除
-    // This should happen after all DOM mutations are complete // 削除
-    // groupedWorkUnits.effectWorkUnits.forEach(unit => { // 削除
-    //   if (typeof unit.vnode.type === 'function') { // 削除
-    //     commitHooks(unit.vnode); // 削除
-    //   } // 削除
-    // }); // 削除
   }
 
   // --- Private Commit Methods ---
@@ -183,11 +163,6 @@ export class Committer<TargetElement = unknown> implements ICommitter {
   private commitDeletion(workUnit: WorkUnit, parentVNodeMap: WeakMap<VNode, VNode>): void {
     const vnodeToDelete = workUnit.vnode;
     const vnodeId = vnodeToDelete._id;
-
-    // クリーンアップフックの実行 (関数コンポーネントの場合) // 削除
-    // if (typeof vnodeToDelete.type === 'function') { // 削除
-    //   cleanupHooks(vnodeToDelete); // 削除
-    // } // 削除
 
     if (!vnodeId) {
       console.warn('Cannot commit deletion: VNode is missing _id.', vnodeToDelete);

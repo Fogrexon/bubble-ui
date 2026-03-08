@@ -3,7 +3,6 @@ import type { IComponentResolver } from './reconciler';
 import type { IReconciler } from './reconciler/IReconciler';
 import type { IRendererAdaptor } from './IRendererAdaptor.ts';
 import { createElement } from './createElement'; // createElement をインポート
-import { commitHooks, cleanupHooks } from './hooks'; // commitHooks と cleanupHooks をインポート
 
 /**
  * Renderer class for managing the rendering of virtual DOM trees to PixiJS containers.
@@ -84,21 +83,7 @@ export class Renderer<TargetElement = unknown> {
         ? this.componentResolver.resolveComponent(element, this.reconcilerInstance)
         : element;
 
-    // アンマウント時のクリーンアップ
-    if (
-      element === null &&
-      this.lastAppRootElement &&
-      typeof this.lastAppRootElement.type === 'function'
-    ) {
-      cleanupHooks(this.lastAppRootElement);
-    }
-
     this.reconcilerInstance.reconcile(resolvedVNode, this.previousVNode);
-
-    // マウント・更新後の副作用実行
-    if (element && typeof element.type === 'function') {
-      commitHooks(element);
-    }
 
     this.previousVNode = resolvedVNode;
 
@@ -140,7 +125,7 @@ export class Renderer<TargetElement = unknown> {
 
       // もし以前のアプリルートVNodeインスタンスが存在し、型が同じであれば、フックの状態とreconcilerを引き継ぐ
       if (this.lastAppRootElement && this.lastAppRootElement.type === this.rootElementType) {
-        newRootElement._hooks = this.lastAppRootElement._hooks;
+        newRootElement._instance = this.lastAppRootElement._instance;
         newRootElement._reconciler = this.lastAppRootElement._reconciler;
       }
 

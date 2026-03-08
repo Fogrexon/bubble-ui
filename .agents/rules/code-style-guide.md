@@ -15,5 +15,5 @@ npm run lint:prettier
 
 
 # 両方同時にやる場合
-npm run lint:fi
+npm run lint:fix
 ```
