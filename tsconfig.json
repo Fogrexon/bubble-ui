@@ -3,10 +3,13 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "sourceMap": true,
     "skipLibCheck": true,
-
     /* Bundler mode */
     "moduleResolution": "node",
     "esModuleInterop": true,
@@ -14,14 +17,11 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "bubble-ui",
     "paths": {
-      "bubble-ui/jsx-runtime": ["./src/jsx/jsx-runtime.ts"],
-      "bubble-ui/jsx-dev-runtime": ["./src/jsx/jsx-dev-runtime.ts"],
-      "bubble-ui": ["./src/index.ts"]
+      "bubble-ui": [
+        "./src/index.ts"
+      ]
     },
-
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
@@ -31,5 +31,7 @@
     "noUncheckedSideEffectImports": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

@@ -23,13 +23,13 @@ const createTextVNode = (text: string): VNode => ({
 export const createElement = (
   type: VNode['type'],
   props: Props | null,
-  ...children: (VNode | string | number | null)[]
+  ...children: (VNode | string | number | boolean | null | undefined)[]
 ): VNode => {
   const normalizedProps: Props = { ...(props || {}) };
 
   normalizedProps.children = children
     .flat()
-    .filter((child) => child !== null)
+    .filter((child) => child !== null && child !== undefined && typeof child !== 'boolean')
     .map((child) =>
       typeof child === 'string' || typeof child === 'number'
         ? createTextVNode(String(child))

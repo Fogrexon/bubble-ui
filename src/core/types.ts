@@ -52,7 +52,5 @@ export interface WorkUnit {
   nextSibling?: VNode | null;
 }
 
-// for jsx function component
-// @ts-ignore
-// eslint-disable-next-line no-undef
-export type BubbleFC<P = {}> = (props: P) => JSX.Element | null;
+// for function component
+export type BubbleFC<P = {}> = (props: P) => VNode | null;
