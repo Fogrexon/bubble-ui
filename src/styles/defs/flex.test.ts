@@ -9,14 +9,18 @@ describe('Flexbox Style Interpreters', () => {
   describe('flexDirectionInterpreter', () => {
     it('should interpret keyword values correctly for flexDirection', () => {
       expect(flexDirectionInterpreter('row')).toEqual({ flexDirection: 'row' });
-      expect(flexDirectionInterpreter('column-reverse')).toEqual({ flexDirection: 'column-reverse' });
+      expect(flexDirectionInterpreter('column-reverse')).toEqual({
+        flexDirection: 'column-reverse',
+      });
     });
   });
 
   describe('justifyContentInterpreter', () => {
     it('should interpret keyword values correctly for justifyContent', () => {
       expect(justifyContentInterpreter('center')).toEqual({ justifyContent: 'center' });
-      expect(justifyContentInterpreter('space-between')).toEqual({ justifyContent: 'space-between' });
+      expect(justifyContentInterpreter('space-between')).toEqual({
+        justifyContent: 'space-between',
+      });
     });
   });
 

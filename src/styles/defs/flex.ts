@@ -1,7 +1,4 @@
-import {
-  parserGenerator,
-  type PrimitiveTokenDefinition,
-} from 'bubble-ui-style-engine';
+import { parserGenerator, type PrimitiveTokenDefinition } from 'bubble-ui-style-engine';
 
 // FlexDirection Definition
 const flexDirectionRule: PrimitiveTokenDefinition = {

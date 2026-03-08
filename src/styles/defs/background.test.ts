@@ -8,15 +8,21 @@ describe('Background Style Interpreters', () => {
   describe('backgroundColorInterpreter', () => {
     it('should interpret color values correctly', () => {
       expect(backgroundColorInterpreter('#ff0000')).toEqual({ backgroundColor: '#ff0000' });
-      expect(backgroundColorInterpreter('rgb(0,255,0)')).toEqual({ backgroundColor: 'rgb(0,255,0)' });
+      expect(backgroundColorInterpreter('rgb(0,255,0)')).toEqual({
+        backgroundColor: 'rgb(0,255,0)',
+      });
       expect(backgroundColorInterpreter('blue')).toEqual({ backgroundColor: 'blue' });
     });
   });
 
   describe('backgroundImageInterpreter', () => {
     it('should interpret image urls correctly', () => {
-      expect(backgroundImageInterpreter('url(test.png)')).toEqual({ backgroundImage: 'url(test.png)' });
-      expect(backgroundImageInterpreter("url('http://example.com/image.jpg')")).toEqual({ backgroundImage: "url(http://example.com/image.jpg)" });
+      expect(backgroundImageInterpreter('url(test.png)')).toEqual({
+        backgroundImage: 'url(test.png)',
+      });
+      expect(backgroundImageInterpreter("url('http://example.com/image.jpg')")).toEqual({
+        backgroundImage: 'url(http://example.com/image.jpg)',
+      });
     });
   });
 
@@ -37,7 +43,9 @@ describe('Background Style Interpreters', () => {
     });
 
     it('should interpret only image', () => {
-      expect(backgroundInterpreter('url(another.gif)')).toEqual({ backgroundImage: 'url(another.gif)' });
+      expect(backgroundInterpreter('url(another.gif)')).toEqual({
+        backgroundImage: 'url(another.gif)',
+      });
     });
   });
 });

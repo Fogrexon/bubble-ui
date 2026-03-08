@@ -9,7 +9,10 @@ export class UIBuilder {
   private _props: any = {};
   private _children: (UIBuilder | string | number | boolean | null | undefined)[];
 
-  constructor(type: string, children: (UIBuilder | string | number | boolean | null | undefined)[]) {
+  constructor(
+    type: string,
+    children: (UIBuilder | string | number | boolean | null | undefined)[]
+  ) {
     this.type = type;
     this._children = children;
   }
