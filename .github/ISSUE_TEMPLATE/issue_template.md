@@ -1,17 +1,17 @@
 ---
-name: Standard Issue Template
-about: Use this template for general issues.
+name: 標準のIssueテンプレート
+about: 一般的なIssueを作成する場合はこのテンプレートを使用してください
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-## Overview
-<!-- Briefly describe the context of the issue. -->
+## 概要
+<!-- Issueの背景について簡潔に説明してください。 -->
 
-## Problem
-<!-- Describe the problem or the current situation that needs improvement. -->
+## 問題点
+<!-- 改善が必要な問題点や現在の状況について説明してください。 -->
 
-## Request
-<!-- Describe the desired outcome or the proposed solution. -->
+## 要望
+<!-- 望ましい結果や提案する解決策について説明してください。 -->

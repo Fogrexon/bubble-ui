@@ -30,5 +30,5 @@ docs/
 coverage/
 
 llm-workspace/
-worktrees/
+llm-docs/
 TASK.md
