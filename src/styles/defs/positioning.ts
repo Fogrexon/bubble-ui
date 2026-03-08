@@ -48,7 +48,10 @@ export const topInterpreter = (value: string): TopInterpreted => {
   const valueNode = choiceDefinitionNode.children[0];
   return {
     // @ts-ignore
-    top: valueNode.tokenType === 'keyword' ? valueNode.value : `${valueNode.value}${valueNode.unit || ''}`,
+    top:
+      valueNode.tokenType === 'keyword'
+        ? valueNode.value
+        : `${valueNode.value}${valueNode.unit || ''}`,
   };
 };
 
@@ -75,13 +78,19 @@ export const leftInterpreter = (value: string): LeftInterpreted => {
   const valueNode = choiceDefinitionNode.children[0];
   return {
     // @ts-ignore
-    left: valueNode.tokenType === 'keyword' ? valueNode.value : `${valueNode.value}${valueNode.unit || ''}`,
+    left:
+      valueNode.tokenType === 'keyword'
+        ? valueNode.value
+        : `${valueNode.value}${valueNode.unit || ''}`,
   };
 };
 
 // Right Definition
 const rightLengthRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'length' };
-const rightPercentageRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'percentage' };
+const rightPercentageRule: PrimitiveTokenDefinition = {
+  type: 'primitive',
+  tokenType: 'percentage',
+};
 const rightAutoRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'keyword<auto>' };
 
 const rightRule: ChoiceDefinition = {
@@ -102,13 +111,19 @@ export const rightInterpreter = (value: string): RightInterpreted => {
   const valueNode = choiceDefinitionNode.children[0];
   return {
     // @ts-ignore
-    right: valueNode.tokenType === 'keyword' ? valueNode.value : `${valueNode.value}${valueNode.unit || ''}`,
+    right:
+      valueNode.tokenType === 'keyword'
+        ? valueNode.value
+        : `${valueNode.value}${valueNode.unit || ''}`,
   };
 };
 
 // Bottom Definition
 const bottomLengthRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'length' };
-const bottomPercentageRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'percentage' };
+const bottomPercentageRule: PrimitiveTokenDefinition = {
+  type: 'primitive',
+  tokenType: 'percentage',
+};
 const bottomAutoRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'keyword<auto>' };
 
 const bottomRule: ChoiceDefinition = {
@@ -129,6 +144,9 @@ export const bottomInterpreter = (value: string): BottomInterpreted => {
   const valueNode = choiceDefinitionNode.children[0];
   return {
     // @ts-ignore
-    bottom: valueNode.tokenType === 'keyword' ? valueNode.value : `${valueNode.value}${valueNode.unit || ''}`,
+    bottom:
+      valueNode.tokenType === 'keyword'
+        ? valueNode.value
+        : `${valueNode.value}${valueNode.unit || ''}`,
   };
 };

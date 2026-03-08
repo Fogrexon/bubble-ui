@@ -6,7 +6,10 @@ import {
 
 // Padding Definition
 const paddingLengthRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'length' };
-const paddingPercentageRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'percentage' };
+const paddingPercentageRule: PrimitiveTokenDefinition = {
+  type: 'primitive',
+  tokenType: 'percentage',
+};
 
 const paddingRule: ChoiceDefinition = {
   type: 'choice',
@@ -32,8 +35,11 @@ export const paddingInterpreter = (value: string): PaddingInterpreted => {
 
 // Margin Definition
 const marginLengthRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'length' };
-const marginPercentageRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'percentage' };
-const marginAutoRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'keyword<auto>'};
+const marginPercentageRule: PrimitiveTokenDefinition = {
+  type: 'primitive',
+  tokenType: 'percentage',
+};
+const marginAutoRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'keyword<auto>' };
 
 const marginRule: ChoiceDefinition = {
   type: 'choice',
@@ -54,14 +60,20 @@ export const marginInterpreter = (value: string): MarginInterpreted => {
   // @ts-ignore
   return {
     // @ts-ignore
-    margin: valueNode.tokenType === 'keyword' ? valueNode.value : `${valueNode.value}${valueNode.unit || ''}`,
+    margin:
+      valueNode.tokenType === 'keyword'
+        ? valueNode.value
+        : `${valueNode.value}${valueNode.unit || ''}`,
   };
 };
 
 // Width Definition
 const widthLengthRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'length' };
-const widthPercentageRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'percentage' };
-const widthAutoRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'keyword<auto>'};
+const widthPercentageRule: PrimitiveTokenDefinition = {
+  type: 'primitive',
+  tokenType: 'percentage',
+};
+const widthAutoRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'keyword<auto>' };
 
 const widthRule: ChoiceDefinition = {
   type: 'choice',
@@ -82,14 +94,20 @@ export const widthInterpreter = (value: string): WidthInterpreted => {
   // @ts-ignore
   return {
     // @ts-ignore
-    width: valueNode.tokenType === 'keyword' ? valueNode.value : `${valueNode.value}${valueNode.unit || ''}`,
+    width:
+      valueNode.tokenType === 'keyword'
+        ? valueNode.value
+        : `${valueNode.value}${valueNode.unit || ''}`,
   };
 };
 
 // Height Definition
 const heightLengthRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'length' };
-const heightPercentageRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'percentage' };
-const heightAutoRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'keyword<auto>'};
+const heightPercentageRule: PrimitiveTokenDefinition = {
+  type: 'primitive',
+  tokenType: 'percentage',
+};
+const heightAutoRule: PrimitiveTokenDefinition = { type: 'primitive', tokenType: 'keyword<auto>' };
 
 const heightRule: ChoiceDefinition = {
   type: 'choice',
@@ -110,6 +128,9 @@ export const heightInterpreter = (value: string): HeightInterpreted => {
   // @ts-ignore
   return {
     // @ts-ignore
-    height: valueNode.tokenType === 'keyword' ? valueNode.value : `${valueNode.value}${valueNode.unit || ''}`,
+    height:
+      valueNode.tokenType === 'keyword'
+        ? valueNode.value
+        : `${valueNode.value}${valueNode.unit || ''}`,
   };
 };

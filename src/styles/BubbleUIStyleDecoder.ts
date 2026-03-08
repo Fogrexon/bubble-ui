@@ -1,7 +1,3 @@
-export interface IBubbleUIStyleDecoder {
-    
-}
+export interface IBubbleUIStyleDecoder {}
 
-export class BubbleUIStyleDecoder {
-
-}
+export class BubbleUIStyleDecoder {}

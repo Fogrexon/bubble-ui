@@ -9,12 +9,12 @@ import {
 
 describe('fontFamilyRule', () => {
   it('should parse fontFamilyRule correctly', () => {
-    const interpreted =  fontFamilyInterpreter('sans-serif');
+    const interpreted = fontFamilyInterpreter('sans-serif');
     expect(interpreted).toEqual({
       fontFamily: 'sans-serif',
     });
   });
-})
+});
 
 describe('fontSizeRule', () => {
   it('should parse fontSizeRule correctly', () => {
@@ -23,7 +23,7 @@ describe('fontSizeRule', () => {
       fontSize: '16px',
     });
   });
-})
+});
 
 describe('fontWeightRule', () => {
   it('should parse fontWeightRule correctly', () => {
@@ -32,7 +32,7 @@ describe('fontWeightRule', () => {
       fontWeight: 'bold',
     });
   });
-})
+});
 
 describe('fontStyleRule', () => {
   it('should parse fontStyleRule correctly', () => {
@@ -60,5 +60,5 @@ describe('fontRule', () => {
       fontSize: '16px',
       fontFamily: 'sans-serif',
     });
-  })
-})
+  });
+});

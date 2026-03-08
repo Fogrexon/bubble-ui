@@ -1,7 +1,6 @@
 // src/core/hooks/useState.ts
 import { getCurrentHookState, setHookState, incrementHookIndex } from './manageHooks';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { VNode } from '../types';
 
 // useStateの実装
 export function useState<S>(
