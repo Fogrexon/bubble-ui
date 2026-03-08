@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
-import { UIBuilder, asUIElement, type UIElement } from './UIBuilder';
+import { UIBuilder, Component } from './UIBuilder';
 
-type ChildInput = UIBuilder | string | number | boolean | null | undefined;
+type ChildInput = UIBuilder | Component<any> | string | number | boolean | null | undefined;
 
 /**
  * A vertically stacked container element.
@@ -17,8 +17,6 @@ type ChildInput = UIBuilder | string | number | boolean | null | undefined;
 export class VStack extends UIBuilder {
   constructor(...children: ChildInput[]) {
     super('VStack', children);
-    // eslint-disable-next-line no-constructor-return
-    return asUIElement(this) as unknown as VStack;
   }
 }
 
@@ -29,8 +27,6 @@ export class VStack extends UIBuilder {
 export class HStack extends UIBuilder {
   constructor(...children: ChildInput[]) {
     super('HStack', children);
-    // eslint-disable-next-line no-constructor-return
-    return asUIElement(this) as unknown as HStack;
   }
 }
 
@@ -41,8 +37,6 @@ export class HStack extends UIBuilder {
 export class Text extends UIBuilder {
   constructor(content: string | number) {
     super('Text', [content]);
-    // eslint-disable-next-line no-constructor-return
-    return asUIElement(this) as unknown as Text;
   }
 }
 
@@ -53,9 +47,5 @@ export class Text extends UIBuilder {
 export class Element extends UIBuilder {
   constructor(type: string, ...children: ChildInput[]) {
     super(type, children);
-    // eslint-disable-next-line no-constructor-return
-    return asUIElement(this) as unknown as Element;
   }
 }
-
-export type { UIElement };

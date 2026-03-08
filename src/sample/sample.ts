@@ -2,6 +2,7 @@ import { DOMAdaptor, TextAdaptor } from '../adaptor';
 import { type BubbleFC, createRenderer, useCallback, useState } from '../core';
 import { createElement } from '../core/createElement';
 import { VStack, Text } from '../core/components';
+import { Component, UIBuilder } from '../core/UIBuilder';
 
 const domAdaptor = new DOMAdaptor();
 const domRenderer = createRenderer(domAdaptor);
@@ -9,16 +10,26 @@ const domRenderer = createRenderer(domAdaptor);
 const textAdaptor = new TextAdaptor();
 const textRenderer = createRenderer(textAdaptor);
 
+// -- Example custom component --
+
+type HeaderProps = { title: string };
+
+class Header extends Component<HeaderProps> {
+  body(): UIBuilder {
+    return new VStack(new Text(this.props.title).key('header-title')).key('header-root');
+  }
+}
+
+// -- Top-level sample using the new Component pattern --
+
 const SampleComponent = () =>
-  new VStack(
-    new Text('text').key('text1'),
-    new Text('text2').key('text2'),
-    new Text('text3').key('text3')
-  )
+  new VStack(new Header({ title: 'Sample App' }), new Text('Subtitle').key('sub'))
     .key('root')
     .build();
 
 textRenderer.render(SampleComponent());
+
+// -- Stateful event component --
 
 type EventComponentProps = {
   outerText: string;

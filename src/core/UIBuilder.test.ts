@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { Element, Text, VStack, HStack, type UIElement } from './components';
+import { Element, Text, VStack, HStack } from './components';
+import { Component, UIBuilder } from './UIBuilder';
 
 describe('UIBuilder / Components', () => {
   it('should build a simple Text element with properties', () => {
     const builder = new Text('Hello World!')
       .key('title-key')
-      .style({ color: 0xff0000, fontSize: 16 })
-      .id('test-id');
+      .style({ color: 0xff0000, fontSize: 16 });
 
     const vnode = builder.build();
 
@@ -14,10 +14,8 @@ describe('UIBuilder / Components', () => {
     expect(vnode.props.children).toHaveLength(1);
     expect(vnode.props.children![0].type).toBe('PRIMITIVE');
     expect(vnode.props.children![0]._text).toBe('Hello World!');
-
     expect(vnode._key).toBe('title-key');
     expect(vnode.props.style).toEqual({ color: 0xff0000, fontSize: 16 });
-    expect(vnode.props.id).toBe('test-id');
   });
 
   it('should build a nested tree structure (VStack)', () => {
@@ -57,7 +55,7 @@ describe('UIBuilder / Components', () => {
     const condition = false;
     const builder = new VStack(
       new Text('always'),
-      condition ? new Text('conditional-truethy') : null,
+      condition ? new Text('conditional-truthy') : null,
       undefined as any,
       new Text('always2')
     );
@@ -68,16 +66,31 @@ describe('UIBuilder / Components', () => {
     expect(vnode.props.children![1].props.children![0]._text).toBe('always2');
   });
 
-  it('should support dynamic prop methods (replaces .prop())', () => {
-    // Cast to UIElement to use dynamic prop methods that are Proxy-based
-    const builder = (new Text('content') as UIElement)
-      .id('my-id')
-      .className('my-class')
-      .tabIndex(0);
+  it('should resolve a custom Component inside a UIBuilder tree', () => {
+    type LabelProps = { text: string; subtitle: string };
 
-    const vnode = builder.build();
-    expect(vnode.props.id).toBe('my-id');
-    expect(vnode.props.className).toBe('my-class');
-    expect(vnode.props.tabIndex).toBe(0);
+    class LabelCard extends Component<LabelProps> {
+      body(): UIBuilder {
+        return new VStack(
+          new Text(this.props.text).key('label-title'),
+          new Text(this.props.subtitle).key('label-sub')
+        ).key('label-card');
+      }
+    }
+
+    const vnode = new VStack(new LabelCard({ text: 'Hello', subtitle: 'World' }))
+      .key('root')
+      .build();
+
+    // The root VStack should have one child: the resolved LabelCard
+    expect(vnode.type).toBe('VStack');
+    expect(vnode.props.children).toHaveLength(1);
+
+    const cardVNode = vnode.props.children![0];
+    expect(cardVNode.type).toBe('VStack');
+    expect(cardVNode._key).toBe('label-card');
+    expect(cardVNode.props.children).toHaveLength(2);
+    expect(cardVNode.props.children![0]._key).toBe('label-title');
+    expect(cardVNode.props.children![1]._key).toBe('label-sub');
   });
 });

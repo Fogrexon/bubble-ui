@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { createElement } from './createElement';
 import type { VNode } from './types';
 
@@ -5,55 +6,17 @@ import type { VNode } from './types';
 export type Style = Record<string, any>;
 
 // eslint-disable-next-line no-use-before-define
-type ChildInput = UIBuilder | string | number | boolean | null | undefined;
-
-/**
- * A Proxy-wrapped UIBuilder.
- * Known methods (`style`, `key`, `onClick`, `build`) are preserved.
- * Any other property access yields a setter method: `element.id("foo")` sets `props.id = "foo"`.
- */
-// eslint-disable-next-line no-use-before-define
-export type UIElement = UIBuilder & Record<string, (value: any) => UIElement>;
-
-/**
- * Creates a Proxy over a UIBuilder instance so that any unknown property access
- * returns a function that sets the corresponding prop and returns the proxy.
- * @internal
- */
-// eslint-disable-next-line no-use-before-define
-export function asUIElement(builder: UIBuilder): UIElement {
-  const proxy: UIElement = new Proxy(builder, {
-    get(target, prop: string | symbol) {
-      if (prop in target) {
-        const val = (target as any)[prop];
-        return typeof val === 'function' ? val.bind(proxy) : val;
-      }
-      if (typeof prop === 'string') {
-        return (value: any) => {
-          // eslint-disable-next-line no-param-reassign
-          (target as any)._props[prop] = value;
-          return proxy;
-        };
-      }
-      return undefined;
-    },
-  }) as UIElement;
-  return proxy;
-}
+type ChildInput = UIBuilder | Component<any> | string | number | boolean | null | undefined;
 
 /**
  * Builder class for constructing UI element trees in a chainable style.
  * Wraps {@link createElement} and accumulates props/children via method chaining,
  * then converts them to a {@link VNode} via {@link UIBuilder.build}.
  *
- * Do not instantiate directly. Use the provided component classes
- * ({@link VStack}, {@link HStack}, {@link Text}, {@link Element}) which
- * return Proxy-wrapped instances ({@link UIElement}) for dynamic prop setting.
- *
  * @example
  * ```ts
  * new VStack(
- *   new Text('Hello').key('title').style({ fontSize: 24 }).id('title-id'),
+ *   new Text('Hello').key('title').style({ fontSize: 24 }),
  * ).key('root').build();
  * ```
  */
@@ -62,12 +25,11 @@ export class UIBuilder {
 
   private _props: any = {};
 
-  // eslint-disable-next-line no-use-before-define
   private _children: ChildInput[];
 
   /**
    * @param type - Element type string (e.g. 'VStack', 'Text').
-   * @param children - Child builders, text content, or falsy values to be filtered.
+   * @param children - Child builders, Components, text content, or falsy values to be filtered.
    */
   constructor(type: string, children: ChildInput[]) {
     this.type = type;
@@ -78,37 +40,90 @@ export class UIBuilder {
    * Applies style properties. Multiple calls are merged shallowly.
    * @param styleObj - Style object compatible with {@link Style}.
    */
-  style(styleObj: Style): UIElement {
+  style(styleObj: Style): this {
     this._props.style = { ...this._props.style, ...styleObj };
-    return asUIElement(this);
+    return this;
   }
 
   /**
    * Sets the reconciler key for this element.
    * @param keyStr - A string or number uniquely identifying this node among siblings.
    */
-  key(keyStr: string | number): UIElement {
+  key(keyStr: string | number): this {
     this._props.key = keyStr;
-    return asUIElement(this);
+    return this;
   }
 
   /**
    * Attaches a click event handler to this element.
    * @param handler - Callback invoked when the element is clicked.
    */
-  onClick(handler: () => void): UIElement {
+  onClick(handler: () => void): this {
     this._props.onClick = handler;
-    return asUIElement(this);
+    return this;
   }
 
   /**
    * Converts the builder tree into a {@link VNode} for use with a renderer.
-   * Child builders are recursively built; falsy values are filtered by {@link createElement}.
+   * Child builders and Components are recursively built;
+   * falsy values are filtered by {@link createElement}.
    */
   build(): VNode {
-    const builtChildren = this._children.map((child) =>
-      child instanceof UIBuilder ? child.build() : child
-    );
+    const builtChildren = this._children.map((child) => {
+      if (child instanceof UIBuilder) return child.build();
+      // eslint-disable-next-line no-use-before-define
+      if (child instanceof Component) return child.build();
+      return child;
+    });
     return createElement(this.type, this._props, ...builtChildren);
+  }
+}
+
+/**
+ * Abstract base class for custom composite components.
+ * Extend this class and implement {@link Component.body} to compose
+ * built-in elements ({@link VStack}, {@link Text}, etc.) into a reusable component.
+ *
+ * @typeParam Props - Shape of the props object passed to the constructor.
+ *
+ * @example
+ * ```ts
+ * class GreetingCard extends Component<{ name: string }> {
+ *   body() {
+ *     return new VStack(
+ *       new Text(`Hello, ${this.props.name}!`).key('greeting'),
+ *     ).key('card-root');
+ *   }
+ * }
+ *
+ * new VStack(new GreetingCard({ name: 'World' })).build();
+ * ```
+ */
+export abstract class Component<Props = Record<string, never>> {
+  /**
+   * Props passed to this component instance.
+   * Access via `this.props` inside {@link Component.body}.
+   */
+  protected props: Props;
+
+  /**
+   * @param props - Props object for this component.
+   */
+  constructor(props: Props) {
+    this.props = props;
+  }
+
+  /**
+   * Defines the element tree for this component.
+   * Implement this method to compose built-in elements or other Components.
+   */
+  abstract body(): UIBuilder;
+
+  /**
+   * Converts this component into a {@link VNode} by calling {@link Component.body}
+   * and then building the resulting tree.
+   */
+  build(): VNode {
+    return this.body().build();
   }
 }
