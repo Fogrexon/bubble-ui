@@ -18,7 +18,10 @@ export type Style = Record<string, any>;
  */
 export class UIBuilder {
   private type: string;
+
   private _props: any = {};
+
+  // eslint-disable-next-line no-use-before-define
   private _children: (UIBuilder | string | number | boolean | null | undefined)[];
 
   /**
