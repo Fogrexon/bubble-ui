@@ -1,8 +1,9 @@
+/* eslint-disable max-classes-per-file */
+/* eslint-disable class-methods-use-this */
 import { DOMAdaptor, TextAdaptor } from '../adaptor';
-import { createRenderer } from '../core';
+import { createRenderer, Component, UIBuilder } from '../core';
 import { createElement } from '../core/createElement';
 import { VStack, Text } from '../core/components';
-import { Component, UIBuilder } from '../core';
 
 const domAdaptor = new DOMAdaptor();
 const domRenderer = createRenderer(domAdaptor);
@@ -24,8 +25,9 @@ class Header extends Component<HeaderProps> {
 
 class SampleApp extends Component {
   body(): UIBuilder {
-    return new VStack(new Header({ title: 'Sample App' }), new Text('Subtitle').key('sub'))
-      .key('root');
+    return new VStack(new Header({ title: 'Sample App' }), new Text('Subtitle').key('sub')).key(
+      'root'
+    );
   }
 }
 
@@ -50,6 +52,7 @@ class EventComponent extends Component<EventComponentProps, EventComponentState>
   }
 
   handleClick = () => {
+    // eslint-disable-next-line no-console
     console.log('Element clicked');
     this.setState({
       texts: [...this.state.texts, `Text ${this.state.texts.length + 1}`],

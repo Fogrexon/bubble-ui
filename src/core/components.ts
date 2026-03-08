@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { UIBuilder } from './UIBuilder';
 import { Component } from './Component';
 

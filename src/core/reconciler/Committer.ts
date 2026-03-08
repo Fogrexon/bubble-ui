@@ -164,7 +164,6 @@ export class Committer<TargetElement = unknown> implements ICommitter {
     const vnodeToDelete = workUnit.vnode;
     const vnodeId = vnodeToDelete._id;
 
-
     if (!vnodeId) {
       console.warn('Cannot commit deletion: VNode is missing _id.', vnodeToDelete);
       // IDがない場合、マップからの削除はできないが、子の再帰的削除は試みる

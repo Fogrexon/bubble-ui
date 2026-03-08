@@ -83,9 +83,7 @@ export class Renderer<TargetElement = unknown> {
         ? this.componentResolver.resolveComponent(element, this.reconcilerInstance)
         : element;
 
-
     this.reconcilerInstance.reconcile(resolvedVNode, this.previousVNode);
-
 
     this.previousVNode = resolvedVNode;
 

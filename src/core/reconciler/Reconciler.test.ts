@@ -1,3 +1,5 @@
+/* eslint-disable max-classes-per-file */
+/* eslint-disable class-methods-use-this */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Reconciler } from './Reconciler';
 import { Differ } from './Differ';
@@ -7,6 +9,8 @@ import { UIBuilder } from '../UIBuilder';
 import { createElement } from '../createElement';
 import type { VNode } from '../types';
 
+/* eslint-disable max-classes-per-file */
+/* eslint-disable class-methods-use-this */
 describe('Reconciler', () => {
   let reconciler: Reconciler;
   let mockAdaptor: any;
@@ -30,11 +34,12 @@ describe('Reconciler', () => {
     });
   });
 
-  const createVNode = (type: any, props: any = {}): VNode => ({
-    type,
-    props: { ...props, children: props.children || [] },
-    _key: props.key,
-  } as VNode);
+  const createVNode = (type: any, props: any = {}): VNode =>
+    ({
+      type,
+      props: { ...props, children: props.children || [] },
+      _key: props.key,
+    }) as VNode;
 
   it('should perform initial reconciliation', () => {
     const root = createVNode('div');
@@ -47,10 +52,18 @@ describe('Reconciler', () => {
   it('should handle scheduleUpdate for components', () => {
     class MyComp {
       public props: any;
+
       public state: any;
+
       public _vnode: any;
-      constructor(props: any) { this.props = props; }
-      body() { return { build: () => createVNode('div') }; }
+
+      constructor(props: any) {
+        this.props = props;
+      }
+
+      body() {
+        return { build: () => createVNode('div') };
+      }
     }
 
     const vnode = createVNode(MyComp);
@@ -78,11 +91,19 @@ describe('Reconciler', () => {
         super(props);
         this.state = { count: 0 };
       }
+
       increment() {
         this.setState({ count: this.state.count + 1 });
       }
+
       body(): UIBuilder {
-        return { build: () => ({ type: 'div', props: { text: `Count: ${this.state.count}`, children: [] } } as VNode) } as UIBuilder;
+        return {
+          build: () =>
+            ({
+              type: 'div',
+              props: { text: `Count: ${this.state.count}`, children: [] },
+            }) as VNode,
+        } as UIBuilder;
       }
     }
 

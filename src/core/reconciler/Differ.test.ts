@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Differ } from './Differ';
-import type { VNode, WorkUnit } from '../types';
+import type { VNode } from '../types';
 
 describe('Differ', () => {
   let differ: Differ;
@@ -9,11 +9,12 @@ describe('Differ', () => {
     differ = new Differ();
   });
 
-  const createVNode = (type: any, props: any = {}, key?: string): VNode => ({
-    type,
-    props: { ...props, children: props.children || [] },
-    _key: key || props.key,
-  } as VNode);
+  const createVNode = (type: any, props?: any, key?: string): VNode =>
+    ({
+      type,
+      props: { ...props, children: props?.children || [] },
+      _key: key || props?.key,
+    }) as VNode;
 
   it('should generate PLACEMENT for new node', () => {
     const newNode = createVNode('div');
@@ -56,8 +57,8 @@ describe('Differ', () => {
     const { workUnits } = differ.diff(newNode, oldNode);
 
     expect(workUnits).toHaveLength(2);
-    expect(workUnits.some(w => w.effectTag === 'DELETION')).toBe(true);
-    expect(workUnits.some(w => w.effectTag === 'PLACEMENT')).toBe(true);
+    expect(workUnits.some((w) => w.effectTag === 'DELETION')).toBe(true);
+    expect(workUnits.some((w) => w.effectTag === 'PLACEMENT')).toBe(true);
   });
 
   it('should identify class component type as same if it is the same class', () => {

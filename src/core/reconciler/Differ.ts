@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import { v4 as uuidv4 } from 'uuid';
 import type { VNode, WorkUnit } from '../types';
 
@@ -155,8 +156,9 @@ export class Differ implements IDiffer {
               undefined,
               newChildren[newStartIndex + 1] || null
             );
-            (newStartNode.props.children || []).forEach((child) => {
-              this.performDiff(workUnits, parentVNodeMap, child, null, newStartNode);
+            const nodeToPass = newStartNode;
+            (nodeToPass.props.children || []).forEach((child) => {
+              this.performDiff(workUnits, parentVNodeMap, child, null, nodeToPass);
             });
           }
         } else {
@@ -190,8 +192,9 @@ export class Differ implements IDiffer {
               undefined,
               newChildren[newStartIndex + 1] || null
             );
-            (newStartNode.props.children || []).forEach((child) => {
-              this.performDiff(workUnits, parentVNodeMap, child, null, newStartNode);
+            const nodeToPass2 = newStartNode;
+            (nodeToPass2.props.children || []).forEach((child) => {
+              this.performDiff(workUnits, parentVNodeMap, child, null, nodeToPass2);
             });
           }
         }
@@ -246,7 +249,8 @@ export class Differ implements IDiffer {
     const keys1 = Object.keys(vnode1.props);
     const keys2 = Object.keys(vnode2.props);
     if (keys1.length !== keys2.length) return false;
-    for (const key of keys1) {
+    for (let i = 0; i < keys1.length; i += 1) {
+      const key = keys1[i];
       if (key !== 'children' && vnode1.props[key] !== vnode2.props[key]) return false;
     }
     return true;

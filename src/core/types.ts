@@ -2,7 +2,7 @@ import type { Component } from './Component';
 import type { IReconciler } from './reconciler/IReconciler';
 
 // eslint-disable-next-line no-use-before-define
-export type ElementType = string | { new(props: any): Component<any, any> };
+export type ElementType = string | { new (props: any): Component<any, any> };
 
 /**
  * Property interface
@@ -38,7 +38,6 @@ export interface VNode {
   _reconciler?: IReconciler; // Reference to the Reconciler instance
 }
 
-
 /**
  * Work unit for reconciler
  */
@@ -48,4 +47,3 @@ export interface WorkUnit {
   alternate?: VNode | null;
   nextSibling?: VNode | null;
 }
-

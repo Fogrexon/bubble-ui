@@ -36,7 +36,7 @@ describe('UIBuilder / Components', () => {
   });
 
   it('should handle onClick event handler', () => {
-    const mockHandler = () => { };
+    const mockHandler = () => {};
     const builder = new Element('Button', 'Click Me').onClick(mockHandler);
 
     const vnode = builder.build();

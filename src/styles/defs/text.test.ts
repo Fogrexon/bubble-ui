@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { colorInterpreter, textAlignInterpreter } from './text';
 
 describe('Text Style Interpreters', () => {
