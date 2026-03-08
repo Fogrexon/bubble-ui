@@ -1,25 +1,24 @@
 import type { VNode } from '../types';
-import { prepareHooks } from '../hooks'; // prepareHooks をインポート
 import type { IReconciler } from './IReconciler'; // IReconciler をインポート
 
 /**
  * Interface for component resolution.
- * Responsible for executing function components and resolving them into VNode trees.
+ * Responsible for instantiating class components and resolving them into VNode trees.
  */
 export interface IComponentResolver {
   /**
-   * Executes a function component and returns the resulting VNode.
+   * Instantiates a class component and returns the resulting VNode.
    * Handles recursive resolution if a component returns another component.
-   * @param vnode The VNode representing the function component.
+   * @param vnode The VNode representing the class component.
    * @param reconciler The reconciler instance managing this component tree.
-   * @returns The resolved VNode tree produced by the component, or null if the component returns null or errors.
+   * @returns The resolved VNode tree produced by the component's body(), or null if errors.
    */
   resolveComponent(vnode: VNode, reconciler: IReconciler): VNode | null;
 }
 
 /**
  * Implementation class for ComponentResolver.
- * Handles the execution and resolution of function components.
+ * Handles the instantiation and resolution of class components.
  */
 export class ComponentResolver implements IComponentResolver {
   /**
@@ -31,23 +30,35 @@ export class ComponentResolver implements IComponentResolver {
    */
   resolveComponent(vnode: VNode, reconciler: IReconciler): VNode | null {
     if (typeof vnode.type === 'function') {
-      // 関数コンポーネントのVNodeにReconcilerインスタンスを設定
       // eslint-disable-next-line no-param-reassign
       vnode._reconciler = reconciler;
+
       try {
-        // 関数コンポーネントを実行する前に prepareHooks を呼び出す
-        prepareHooks(vnode);
-        const result = vnode.type(vnode.props);
+        let instance = vnode._instance;
+
+        if (!instance) {
+          // Instantiate the component if it doesn't exist
+          // eslint-disable-next-line new-cap
+          instance = new (vnode.type as any)(vnode.props);
+          // eslint-disable-next-line no-param-reassign
+          vnode._instance = instance;
+        } else {
+          // Update props of existing instance
+          instance.props = vnode.props;
+        }
+
+        // Set the VNode reference on the instance
+        instance!._vnode = vnode;
+
+        const uiBuilder = instance!.body();
+        const result = uiBuilder.build();
 
         if (!result) {
           return null;
         }
 
-        // 結果がさらに別の関数コンポーネントの場合、それにもReconcilerインスタンスを伝播させる
+        // Recursive resolution for nested components
         if (result && typeof result.type === 'function') {
-          // result._reconciler = reconciler; // ここで設定するのは、resultが新しいVNodeインスタンスの場合。
-          // createElementで生成される際にreconcilerが設定される方が良いかもしれない。
-          // または、この再帰呼び出しの中で設定される。
           return this.resolveComponent(result, reconciler);
         }
 

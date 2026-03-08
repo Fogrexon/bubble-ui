@@ -1,6 +1,6 @@
-/* eslint-disable max-classes-per-file */
 import { createElement } from './createElement';
 import type { VNode } from './types';
+import { Component } from './Component';
 
 // TODO: Replace with proper type from bubble-ui-style-engine once available
 export type Style = Record<string, any>;
@@ -71,59 +71,13 @@ export class UIBuilder {
   build(): VNode {
     const builtChildren = this._children.map((child) => {
       if (child instanceof UIBuilder) return child.build();
-      // eslint-disable-next-line no-use-before-define
-      if (child instanceof Component) return child.build();
+      if (child instanceof Component) {
+        // ClassComponent を createElement に直接渡す
+        return createElement(child.constructor as any, (child as any).props);
+      }
       return child;
     });
     return createElement(this.type, this._props, ...builtChildren);
   }
 }
 
-/**
- * Abstract base class for custom composite components.
- * Extend this class and implement {@link Component.body} to compose
- * built-in elements ({@link VStack}, {@link Text}, etc.) into a reusable component.
- *
- * @typeParam Props - Shape of the props object passed to the constructor.
- *
- * @example
- * ```ts
- * class GreetingCard extends Component<{ name: string }> {
- *   body() {
- *     return new VStack(
- *       new Text(`Hello, ${this.props.name}!`).key('greeting'),
- *     ).key('card-root');
- *   }
- * }
- *
- * new VStack(new GreetingCard({ name: 'World' })).build();
- * ```
- */
-export abstract class Component<Props = Record<string, never>> {
-  /**
-   * Props passed to this component instance.
-   * Access via `this.props` inside {@link Component.body}.
-   */
-  protected props: Props;
-
-  /**
-   * @param props - Props object for this component.
-   */
-  constructor(props: Props) {
-    this.props = props;
-  }
-
-  /**
-   * Defines the element tree for this component.
-   * Implement this method to compose built-in elements or other Components.
-   */
-  abstract body(): UIBuilder;
-
-  /**
-   * Converts this component into a {@link VNode} by calling {@link Component.body}
-   * and then building the resulting tree.
-   */
-  build(): VNode {
-    return this.body().build();
-  }
-}

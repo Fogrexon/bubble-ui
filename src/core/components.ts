@@ -1,7 +1,7 @@
-/* eslint-disable max-classes-per-file */
-import { UIBuilder, Component } from './UIBuilder';
+import { UIBuilder } from './UIBuilder';
+import { Component } from './Component';
 
-type ChildInput = UIBuilder | Component<any> | string | number | boolean | null | undefined;
+type ChildInput = UIBuilder | Component<any, any> | string | number | boolean | null | undefined;
 
 /**
  * A vertically stacked container element.
