@@ -1,27 +1,27 @@
-**Description**
-Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
+**変更内容の説明**
+<!-- 変更の概要と、修正されるIssueを含めてください。動機や背景も適宜記載してください。この変更に必要な依存関係があればリストアップしてください。 -->
 
-**Type of change**
-Please delete options that are not relevant.
+**変更の種類**
+<!-- 該当しない選択肢は削除してください。 -->
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+- [ ] バグ修正 (Issueを修正する、既存の動作を壊さない変更)
+- [ ] 新機能 (機能を追加する、既存の動作を壊さない変更)
+- [ ] 破壊的変更 (既存の機能が想定通りに動作しなくなるような修正または機能追加)
+- [ ] この変更はドキュメントの更新を必要とする
 
-**How Has This Been Tested?**
-Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration.
+**検証方法**
+<!-- 変更を確認するために実行したテストを記述してください。再現可能な手順を提供してください。また、テスト環境に関する詳細もすべて記載してください。 -->
 
-- [ ] Unit tests
-- [ ] Integration tests
-- [ ] End-to-end tests
+- [ ] ユニットテスト
+- [ ] 統合テスト
+- [ ] E2Eテスト
 
-**Checklist:**
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published in downstream modules
+**チェックリスト:**
+- [ ] このプロジェクトのコーディングスタイルガイドに従っている
+- [ ] 自分自身のコードをセルフレビューした
+- [ ] 特に理解しにくい部分について、コードにコメントを追加した
+- [ ] ドキュメントに対応する変更を加えた
+- [ ] この変更によって新たな警告は生成されない
+- [ ] 修正が有効であること、または機能が動作することを証明するテストを追加した
+- [ ] 新規および既存のユニットテストがローカルでパスしている
+- [ ] 依存する変更が下流モジュールにマージ・公開されている
