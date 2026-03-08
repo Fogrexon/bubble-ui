@@ -49,23 +49,9 @@ export class DOMAdaptor implements IRendererAdaptor<DOMNode> {
       );
     }
     if (typeof vnode.type === 'string') {
-      // vnode.type が 'element' の場合、HTMLの 'div' 要素として扱う
-      if (vnode.type.toLowerCase() === 'element') {
-        const element = document.createElement('div');
-        // 初期プロパティ設定 (例: id, className, styleなど)
-        this.updateElementProperties(element, {}, vnode.props);
-        return element;
-      }
-      // 'element' 以外の文字列型は未サポートとする (またはvnode.typeをそのままタグ名として使うか選択)
-      // 今回は「Divだけで良い」という指示なので、'element'以外は警告し、divとしてフォールバックする
-      console.warn(
-        `DOMAdaptor: Unsupported element type "${vnode.type}". Treating as 'div' by default for <element> tag, or as a fallback.`
-      );
-      const element = document.createElement('div');
-      // ユーザーが <element type="actualTag"> のように使うことを想定しないなら、
-      // typeが'element'でない場合はエラーにする方が明確かもしれない。
-      // ここでは、JSXで<element>と書かれたものが'element'というtypeで来る前提。
-      element.textContent = `Unsupported type: ${vnode.type}, rendered as div.`;
+      const tag = DOMAdaptor.resolveTag(vnode.type);
+      const element = document.createElement(tag);
+      this.updateElementProperties(element, {}, vnode.props);
       return element;
     }
     // 関数コンポーネントやクラスコンポーネントはReconciler/ComponentResolverが解決するため、
@@ -207,6 +193,30 @@ export class DOMAdaptor implements IRendererAdaptor<DOMNode> {
   dispose(): void {
     if (this.rootContainer) {
       this.rootContainer = null;
+    }
+  }
+
+  /**
+   * Resolves a component type string to a concrete HTML tag name.
+   * This is a temporary DOM-compatible mapping; it will be replaced by
+   * pixi.js/yoga-layout equivalents in the future.
+   *
+   * | Type                              | HTML tag |
+   * |-----------------------------------|----------|
+   * | VStack, HStack, Element, element  | div      |
+   * | Text                              | span     |
+   * | (others)                          | div      |
+   */
+  static resolveTag(type: string): keyof HTMLElementTagNameMap {
+    switch (type) {
+      case 'Text':
+        return 'span';
+      case 'VStack':
+      case 'HStack':
+      case 'Element':
+      case 'element':
+      default:
+        return 'div';
     }
   }
 }
