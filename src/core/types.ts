@@ -1,4 +1,5 @@
 import type { Component } from './Component';
+import type { IReconciler } from './reconciler/IReconciler';
 
 // eslint-disable-next-line no-use-before-define
 export type ElementType = string | { new(props: any): Component<any, any> };
